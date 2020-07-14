@@ -4,4 +4,7 @@ missing data analysis for numerical analysis
 
 add classification tutorials
 
-html files for tutiorials
+
+## Tutorials
+* update data directory
+* html files for tutiorials

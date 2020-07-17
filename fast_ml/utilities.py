@@ -95,11 +95,12 @@ def __calculate_mean_target_per_category__(df, c, target):
 def __calculate_mean_target_per_category__(df, c, target):
     
     length_df = len(df)
-    temp = pd.DataFrame(df[c].value_counts()/length_df)
+    data = {'count' : df[c].value_counts(), 'perc' : df[c].value_counts()/length_df}
+    temp = pd.DataFrame(data)
     temp = pd.concat([temp, pd.DataFrame(df.groupby(c)[target].mean())], axis=1)
 
     temp.reset_index(inplace=True)
-    temp.columns = [c, 'perc', target]
+    temp.columns = [c, 'count', 'perc', target]
     temp.sort_values(by='perc', ascending = False, inplace=True)
 
     return temp
@@ -113,3 +114,12 @@ def __plot_target_with_categories__(df, c, target):
     plt.xlabel(f'Distribution of {target}')
     plt.legend(loc='best')
     plt.show()
+    
+
+def rare_encoding(df, variables, tol = 0.05):
+    for var in variables:
+        s = df[var].value_counts()/len(df[var])
+        non_rare_labels = [cat for cat, perc in s.items() if perc >=tol]
+        df[var] = np.where(df[var].isin(non_rare_labels), df[var], 'Rare')
+        
+    return df

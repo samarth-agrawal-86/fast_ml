@@ -10,23 +10,35 @@ from fast_ml.utilities import printmd ,  normality_diagnostic  ,  plot_categorie
 
 class MissingDataAnalysis:
     def __init__ (self, df, target = None, model = None):
-        self.__df__ = df
-        self.__target__ = target
-        self.__model__ = model
-                '''
+        '''
+        Analysing and Imputing Missing Data  
+    
         Parameters:
         -----------
-            df = Dataset we are working on for Analysis.
-            model = default is None. Most of the encoding methods can be used for both classification and regression problems. 
-            variables = list of all the variables
-            target = target variable if any target 
+            df : Dataset we are working on for Analysis.
+            model : default is None. Most of the encoding methods can be used for both classification and regression problems. 
+            target : target variable if any target 
             
         
         '''
+        self.__df__ = df
+        self.__target__ = target
+        self.__model__ = model
+
 
         
         
     def calculate_missing_values(self):
+        '''
+            dataframe with all the variables having missing values ordered by the percentage of 
+            missing_value_counts along with datatype of that particular variable
+            
+        Parameters: No Parameters needed.
+        -----------
+        
+        Returns: It display dataset with missing counts/percentages.
+        --------
+        '''
         df = self.__df__
         vars_with_na = [var for var in df.columns if df[var].isnull().mean()>0]
         miss_df = pd.concat([df[vars_with_na].isnull().mean().mul(100), df[vars_with_na].dtypes], axis=1 )
@@ -41,17 +53,7 @@ class MissingDataAnalysis:
     # ------------------------------------------------------#
     # Numerical Variable  #
     # ------------------------------------------------------#
-                '''
-        Parameters: df = Dataset we are working on for Analysis.
-        -----------
-        Returns:
-        --------
-            dataframe with all the variables having missing values ordered by the percentage of 
-            missing_value_counts along with datatype of that particular variable
-            
-            
-        
-        '''
+
 
     def explore_numerical_imputation (self, variable):
 
@@ -63,27 +65,27 @@ class MissingDataAnalysis:
 
 
     def explore_categorical_imputation (self, variable):
-                     '''
+        '''
         Parameters:
         -----------
-            df = Dataset we are working on for Analysis.
-            model = default is None. Most of the encoding methods can be used for both classification and regression problems. 
-            variables = list of all the categorical variables
-            target = target variable if any target 
+            df :Dataset we are working on for Analysis.
+            model : default is None. Most of the encoding methods can be used for both classification and regression problems. 
+            c/variables : list of all the categorical variables
+            target : target variable if any target 
             
             Methods for Imputation:
-             method = 
-                     ['Mode'
-                     'Random_Imputation'
-                     'Rare_Enocing'
-                     'constant'
-                     'Frequency_Encoding']
+                method : 
+                    'Mode'
+                    'Random_Imputation'
+                    'Rare_Encding'
+                    'constant'
+                    'Frequency_Encoding'
             
-            Returns:
+        Returns:
         --------
-            plots/graph[Histograms,KDE,CountPlots] for categorical variables depecting their distribution,counts,corelations among 
+            plots/graph Histograms, KDE, CountPlots for categorical variables depecting their distribution, counts, corelations among 
             themselves/the target before and after imputation for missing value are done via different
-            methods(strategy)along with columns for imputed value.
+            methods(strategy) along with columns for imputed value.
         '''
         df = self.__df__
         c = variable
@@ -150,11 +152,22 @@ class MissingDataAnalysis:
         temp = self.__random_category_imputation__(c)
         plot_categories_with_target(temp, c+'_random', target = self.__target__)
         
-        
+
         
     
 
     def __random_category_imputation__(self, c):
+        """
+        Parameters:
+        -----------
+            df : Dataset we are working on for Analysis.
+            c: variable within the list
+        
+        Returns:
+        --------
+            Dataset with Random_Imputed values for individual variables
+                
+        """
 
         # Get the number of null values for variable
         number_nulls = self.__df__[c].isnull().sum()

@@ -30,8 +30,7 @@ class MissingDataAnalysis:
         
     def calculate_missing_values(self):
         '''
-            dataframe with all the variables having missing values ordered by the percentage of 
-            missing_value_counts along with datatype of that particular variable
+        dataframe with all the variables having missing values ordered by the percentage of missing_value_counts along with datatype of that particular variable
             
         Parameters: No Parameters needed.
         -----------

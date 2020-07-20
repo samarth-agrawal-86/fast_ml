@@ -13,6 +13,16 @@ class MissingDataAnalysis:
         self.__df__ = df
         self.__target__ = target
         self.__model__ = model
+                '''
+        Parameters:
+        -----------
+            df = Dataset we are working on for Analysis.
+            model = default is None. Most of the encoding methods can be used for both classification and regression problems. 
+            variables = list of all the variables
+            target = target variable if any target 
+            
+        
+        '''
 
         
         
@@ -31,7 +41,17 @@ class MissingDataAnalysis:
     # ------------------------------------------------------#
     # Numerical Variable  #
     # ------------------------------------------------------#
-
+                '''
+        Parameters: df = Dataset we are working on for Analysis.
+        -----------
+        Returns:
+        --------
+            dataframe with all the variables having missing values ordered by the percentage of 
+            missing_value_counts along with datatype of that particular variable
+            
+            
+        
+        '''
 
     def explore_numerical_imputation (self, variable):
 
@@ -43,16 +63,28 @@ class MissingDataAnalysis:
 
 
     def explore_categorical_imputation (self, variable):
-        """
-        Compares the results from various imputation methods so that you can choose the best suited one
-
-
-        # 1st chart => existing categories and avg target value
-        # 2nd chart => missing value replaced by frequent category ; then plot a chart with target value
-        # 3rd chart => missing value replaced by 'Missing' category ; then plot a chart with target value
-        # 4th chart => missing value replaced by random distribution ; then plot a chart with target value
-
-        """
+                     '''
+        Parameters:
+        -----------
+            df = Dataset we are working on for Analysis.
+            model = default is None. Most of the encoding methods can be used for both classification and regression problems. 
+            variables = list of all the categorical variables
+            target = target variable if any target 
+            
+            Methods for Imputation:
+             method = 
+                     ['Mode'
+                     'Random_Imputation'
+                     'Rare_Enocing'
+                     'constant'
+                     'Frequency_Encoding']
+            
+            Returns:
+        --------
+            plots/graph[Histograms,KDE,CountPlots] for categorical variables depecting their distribution,counts,corelations among 
+            themselves/the target before and after imputation for missing value are done via different
+            methods(strategy)along with columns for imputed value.
+        '''
         df = self.__df__
         c = variable
 

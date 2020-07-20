@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import Markdown, display
-from fast_ml.utilities import __printmd__ , __normality_diagnostic__ , __plot_categories__ , \
-__plot_categories_with_target__ , __calculate_mean_target_per_category__ , __plot_target_with_categories__
+from fast_ml.utilities import printmd ,  normality_diagnostic  ,  plot_categories  , display_all, \
+ plot_categories_with_target  ,  calculate_mean_target_per_category  ,  plot_target_with_categories 
 
 class MissingDataAnalysis:
     def __init__ (self, df, target = None, model = None):
@@ -14,9 +14,24 @@ class MissingDataAnalysis:
         self.__target__ = target
         self.__model__ = model
 
+        
+        
+    def calculate_missing_values(self):
+        df = self.__df__
+        vars_with_na = [var for var in df.columns if df[var].isnull().mean()>0]
+        miss_df = pd.concat([df[vars_with_na].isnull().mean().mul(100), df[vars_with_na].dtypes], axis=1 )
+        miss_df.reset_index(inplace = True)
+        miss_df.columns = ['variables', 'na_perc', 'dtype']
+        miss_df.sort_values(by = 'na_perc' , ascending = False, inplace = True)
+        miss_df.reset_index(inplace = True, drop=True)
+        
+        display_all(miss_df)
+
+
     # ------------------------------------------------------#
     # Numerical Variable  #
     # ------------------------------------------------------#
+
 
     def explore_numerical_imputation (self, variable):
 
@@ -41,13 +56,17 @@ class MissingDataAnalysis:
         df = self.__df__
         c = variable
 
-        __printmd__ ('**<u>Missing Values :</u>**')
+        
+        printmd ('**<u>Missing Values :</u>**')
+
 
         print ('  Number :', df[c].isnull().sum())
         print ('  Percentage :', df[c].isnull().mean()*100, '%')
         print ()
 
-        __printmd__(f'**<u>We have following options for Imputing the Missing Value for Categorical Variable, {c} :</u>**')
+        
+        printmd(f'**<u>We have following options for Imputing the Missing Value for Categorical Variable, {c} :</u>**')
+
         print ('  1. Imputing missing values by Frequent Category' )
         print ('  2. Imputing missing values by Missing Label' )
         print ('  3. Imputing missing values by Randomly selected value' )
@@ -56,10 +75,12 @@ class MissingDataAnalysis:
         print ("Let's visualize the impact of each imputation and compare it with original distribution")
         print ()
 
-        __printmd__ ('**<u>1. Original Distribution of all Categories :</u>**')
-        __plot_categories_with_target__(df, c, target = self.__target__)
-
-        __printmd__ ('**<u>2. All Categories after Frequent Category Imputation :</u>**')
+        
+        printmd ('**<u>1. Original Distribution of all Categories :</u>**')
+        plot_categories_with_target(df, c, target = self.__target__)
+        
+        printmd ('**<u>2. All Categories after Frequent Category Imputation :</u>**')
+        
 
         # Frequent value
         print ('Look at the Distibution of Frequent Category and Missing Data. Are there some major differences')
@@ -82,22 +103,24 @@ class MissingDataAnalysis:
 
         df[c+'_freq'] = df[c].fillna(value)
 
-        __plot_categories_with_target__(df, c+'_freq', target = self.__target__)
-
-
+        
+        plot_categories_with_target(df, c+'_freq', target = self.__target__)
+        
+        
         print ("3. All Categories after Missing Label Imputation")
         value = 'Missing'
         df[c+'_miss'] = df[c].fillna(value)
-
-        __plot_categories_with_target__(df, c+'_miss', target = self.__target__)
-
-
+        
+        plot_categories_with_target(df, c+'_miss', target = self.__target__)
+        
+        
         print ("4. All Categories after Randomly Selected Value Imputation")
         temp = self.__random_category_imputation__(c)
-        __plot_categories_with_target__(temp, c+'_random', target = self.__target__)
-
-
-
+        plot_categories_with_target(temp, c+'_random', target = self.__target__)
+        
+        
+        
+    
 
     def __random_category_imputation__(self, c):
 

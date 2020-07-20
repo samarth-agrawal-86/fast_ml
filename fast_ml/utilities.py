@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import Markdown, display
 
-def __printmd__(string):
+def printmd(string):
     display(Markdown(string))
 
     
-def __normality_diagnostic__ ( s):
+def normality_diagnostic ( s):
     plt.figure(figsize = (16, 4))
 
     plt.subplot(1,2,1)
@@ -24,7 +24,7 @@ def __normality_diagnostic__ ( s):
     plt.show()
 
 
-def __missing_rare_category__ (df, c, add_missing, add_rare, tol=0.05):
+def missing_rare_category (df, c, add_missing, add_rare, tol=0.05):
     length_df = len(df)
     
     if add_missing:
@@ -39,11 +39,11 @@ def __missing_rare_category__ (df, c, add_missing, add_rare, tol=0.05):
 
     return df
         
-def __plot_categories__( df, c,  add_missing = False, add_rare = False, tol=0.05):
+def  plot_categories ( df, c,  add_missing = False, add_rare = False, tol=0.05):
 
     length_df = len(df)
     
-    df = __missing_rare_category__(df, c, add_missing, add_rare, tol=0.05)
+    df =  missing_rare_category (df, c, add_missing, add_rare, tol=0.05)
 
     plot_df = pd.Series(df[c].value_counts() / length_df)
     plot_df.sort_values(ascending = False, inplace = True)
@@ -57,9 +57,9 @@ def __plot_categories__( df, c,  add_missing = False, add_rare = False, tol=0.05
     plt.show()
 
     
-def __plot_categories_with_target__( df, c, target):
+def  plot_categories_with_target ( df, c, target):
 
-    plot_df = __calculate_mean_target_per_category__(df, c, target)
+    plot_df =  calculate_mean_target_per_category (df, c, target)
     #plot_df.reset_index(drop = True, inplace=True)
 
 
@@ -81,7 +81,7 @@ def __plot_categories_with_target__( df, c, target):
     plt.show()
 
 '''
-def __calculate_mean_target_per_category__(df, c, target):
+def  calculate_mean_target_per_category (df, c, target):
     
     length_df = len(df)
     temp = pd.DataFrame(df[c].value_counts()/length_df)
@@ -92,7 +92,7 @@ def __calculate_mean_target_per_category__(df, c, target):
     return temp
 '''
 
-def __calculate_mean_target_per_category__(df, c, target):
+def  calculate_mean_target_per_category (df, c, target):
     
     length_df = len(df)
     data = {'count' : df[c].value_counts(), 'perc' : df[c].value_counts()/length_df}
@@ -105,7 +105,7 @@ def __calculate_mean_target_per_category__(df, c, target):
 
     return temp
 
-def __plot_target_with_categories__(df, c, target):
+def  plot_target_with_categories (df, c, target):
     
     fig = plt.figure(figsize=(12,6))
     for cat in df[c].unique():
@@ -116,6 +116,10 @@ def __plot_target_with_categories__(df, c, target):
     plt.show()
     
 
+def display_all(df):
+    with pd.option_context('display.max_rows', 1000, 'display.max_columns', 1000):
+        display(df)
+        
 def rare_encoding(df, variables, tol = 0.05):
     for var in variables:
         s = df[var].value_counts()/len(df[var])

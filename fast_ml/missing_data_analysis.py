@@ -86,6 +86,13 @@ class MissingDataAnalysis:
             plots/graph Histograms, KDE, CountPlots for categorical variables depecting their distribution, counts, corelations among 
             themselves/the target before and after imputation for missing value are done via different
             methods(strategy) along with columns for imputed value.
+            
+        Compares the results from various imputation methods so that you can choose the best suited one
+
+            # 1st chart => existing categories and avg target value
+            # 2nd chart => missing value replaced by frequent category ; then plot a chart with target value
+            # 3rd chart => missing value replaced by 'Missing' category ; then plot a chart with target value
+            # 4th chart => missing value replaced by random distribution ; then plot a chart with target value
         '''
         df = self.__df__
         c = variable

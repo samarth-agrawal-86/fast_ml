@@ -9,26 +9,45 @@ from fast_ml.utilities import printmd , normality_diagnostic , plot_categories ,
 plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories
 
 class eda:
-    """
-    Does the EDA for numerical variable
-    
-    Optional Arguments:
-    target: define the target variable
-    model : regression / classification 
-    """
+
     def __init__ (self, df, target = None, model = None):
+        """
+       
+        Provdies an the EDA for Numerical / Categorical variable(s), this will read data frame and checks for the optional arguments 'target' and 'Model'.
+        For Numerical Variable function 'eda_numerical_variable' is called.
+        For Categorical Variable function 'eda_categorical_variable' is called.
+       
+        Parameters :
+        ----------- 
+            df : Dataframe for which Analysis to be performed
+                
+        Optional Arguments :
+        -------------------
+            
+            target : Define the target variable, if you want to see the relationship between given list of varaible(s) with Target variable, default None
+            model : Specify the model either regression OR classification,  default None 
+        """
         self.__df__ = df
         self.__target__ = target
         self.__model__ = model
         self.__length_df__= len(df)
     
     def eda_numerical_variable(self, variable):
-        '''
-        Parameter:
-            variable: pass the variable for which EDA is required
-            
-        provides basic statistcs, missing values, distribution, spread statistics, 
-        Q-Q plot, Box plot, outliers using IQR, various variable transformations'''
+        """
+        This provides basic EDA of the Numerical variable passed,
+            - Basic Statistics like Count, Data Type, min, max, mean, median, etc., 
+            - Missing Values count and missing percentages 
+            - Generates distribution plots. Histogram and KDE Plots 
+            - Skewness and Kurtosis
+            - Q-Q plot to check Normality
+            - Box plot to check the spread outliers
+            - Outliers using IQR
+            - Various variable transformations
+
+        Parameter :
+        ----------
+            variable: Pass the Numerical variable for which EDA is required
+        """
         c = variable
         s = self.__df__[variable]
 
@@ -133,6 +152,33 @@ class eda:
     
     def eda_categorical_variable(self, variable, add_missing=False, add_rare=False, tol=0.05):
         """
+        This function provides EDA for Categorical variable, this includes 
+            - Counts
+            - Cardinality, number of Categories in each Varaible
+            - Missing values counts and percentages
+           
+        Also Category wise basic plots will be generated for the given variable 
+            - Plot Categories
+            - Plot Categories by including Missing Values
+            - Plot categories by combining Rare label
+            - Plot categories with target
+            - Plot distribution of target variable for each categories (If Target Variable is passed)
+       
+        Parameters :
+        ----------- 
+            variable: Pass the variable(s) for which EDA is required
+            tol : Threshold limit to combine the rare occurrence categories, (tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category   
+                
+        Optional Arguments :
+        -------------------
+            
+            target : Define the target variable, default None
+            model : Specify the model either regression OR classification 
+            
+         Return :
+         -------
+         
+         Returns summary & plots of given variable
         """
         c = variable
         df = self.__df__

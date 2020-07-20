@@ -5,6 +5,8 @@ from fast_ml.utilities import rare_encoding
 class FeatureEngineering_Categorical:
     def __init__(self, model=None, method='label', drop_last=True, n_frequent=None):
         '''
+        Feature  engineering is performed for the categorical variables.The strategy is provided by the user to perform encoding for the list of variables and dataframe as an input.
+      
         Parameters:
         -----------
             model = default is None. Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model to be defined as 'classification' or 'clf'
@@ -32,12 +34,13 @@ class FeatureEngineering_Categorical:
         
     def fit(self, df, variables, target=None):
         '''
-        
+          Function that computes different methods for encoding namely 'one-hot','integer', 'count','freq','ordered-label','target-  ordered','target-mean','target-prob' and 'target-woe' based on the input provided by the user. The values generated after computation is stored in "param_dict_" dictionary having  "key" as the variable name and "value" as the computed value .
+         
         Parameters:
         -----------
-            df = training dataset
-            variables = list of all the categorical variables
-            target = target variable if any target encoding method is used
+            df : training dataset
+            variables : list of all the categorical variables
+            target : target variable if any target encoding method is used
             
         '''
         self.param_dict_ = {}
@@ -102,12 +105,15 @@ class FeatureEngineering_Categorical:
         return None
     
     def transform(self, df):
-        '''
+        '''        
+         The values encoded and stored in the dictionary "param_dict_" from fit(self, df, variables, target=None) function is used to apply transformation on variables of either train or test dataset.
+         Note: transform(self, df) always needed to be called after fit(self, df, variables, target=None) for applying encoding
+        
         Parameters:
         -----------
-            df = training dataset
-            variables = list of all the categorical variables
-            target = target variable if any target encoding method is used
+            df : training dataset
+            variables : list of all the categorical variables
+            target : target variable if any target encoding method is used
             
         Returns:
         --------

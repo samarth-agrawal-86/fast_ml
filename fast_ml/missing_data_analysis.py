@@ -70,7 +70,7 @@ class MissingDataAnalysis:
         -----------
             df :Dataset we are working on for Analysis.
             model : default is None. Most of the encoding methods can be used for both classification and regression problems. 
-            c/variables : list of all the categorical variables
+            variables : list of all the categorical variables
             target : target variable if any target 
             
             Methods for Imputation:

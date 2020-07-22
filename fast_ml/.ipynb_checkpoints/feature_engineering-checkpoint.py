@@ -29,6 +29,7 @@ class FeatureEngineering_Categorical:
         self.drop_last = drop_last
         self.n_frequent = n_frequent
         self.model = model
+        self.drop_last = drop_last
         
     def fit(self, df, variables, target=None):
         '''
@@ -45,7 +46,7 @@ class FeatureEngineering_Categorical:
         if self.method == 'one-hot' or self.method == 'onehot':
             for var in variables:
                 cats = list(df[var].unique())
-                if drop_last:
+                if self.drop_last:
                     self.param_dict_[var] = cats[0:-1]
                 else:
                     self.param_dict_[var] = cats
@@ -85,7 +86,7 @@ class FeatureEngineering_Categorical:
         if (self.model =='classification' or self.model == 'clf'):
             if self.method =='target_prob_ratio':
                 for var in variables:
-                    prob_df = pd.DataFrame(ds.groupby(var)[target].mean())
+                    prob_df = pd.DataFrame(df.groupby(var)[target].mean())
                     prob_df.columns = ['target_1']
                     prob_df['target_0'] = 1 - prob_df['target_1']
                     prob_df['ratio'] = prob_df['target_1']/prob_df['target_0']

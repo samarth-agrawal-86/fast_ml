@@ -7,20 +7,22 @@ from IPython.display import Markdown, display
 
 
 class MissingDataImputer_Numerical:
-    '''
+
+    def __init__ (self, method, add_indicator = True, value=None, random_state =1):
+        '''
     
     Various imputation methods available in this module are:
     Mean, Median, Mode, User define value, Random Sample distribution
     
     Parameters:
+    -----------
         Allowed values for
         method : 'mean', 'median', 'mode', 'custom_value', 'random'
         value : if method ='custom_value' then user can pass on the imputation value in this parameter
         add_indicator : True / False. If True then a new binary variable will be created of the name "var_nan" 
                         which will take value 1 if there's a missing value in var or 
                         0 if there's no missing value in var
-    '''
-    def __init__ (self, method, add_indicator = True, value=None, random_state =1):
+        '''
         self.method = method
         
         self.value = value
@@ -28,6 +30,18 @@ class MissingDataImputer_Numerical:
         self.add_indicator = add_indicator
         
     def fit (self, df, variables):
+        
+        '''
+        
+        The fit function imputes the dataset for the missing values based on the strateghy or method used and stores it into a dictionary 'param_dict_' variable 
+      
+        Parameters:
+        ----------
+            df : df defines the dataset
+            variables : set of categorical columns to be imputed
+            
+        
+        '''
         
         self.variables = variables
         
@@ -50,12 +64,27 @@ class MissingDataImputer_Numerical:
                 self.param_dict_ = {var:self.value for var in variables}
         
         if self.method =='random':
-            None
+            for var in variables:
+                n_miss = df[var].isnull().sum()
+                n_miss_perc = df[var].isnull().mean()*100
+                if n_miss_perc >50:
+                    print(f'Random Value Imputation will not be suitable for {var}')
+
             
         return self
     
     def transform(self, df):
+        '''
+        The transform function applies the changes to the data after the fit function imputation is made in a dictionary variable
         
+        Parameters:
+        -----------
+            df : df defines the dataset
+            
+        Return : 
+        ------- 
+            returns the dataset after apply of imputed values
+        '''
         if self.add_indicator == True:
             df[var + '_nan'] = np.where(df[var].isnull(), 1, 0)
         
@@ -98,12 +127,16 @@ class MissingDataImputer_Numerical:
 
 
 class MissingDataImputer_Categorical:
-    '''
+    
+    
+    def __init__ (self, method, add_indicator = True, value='Missing', random_state =1):
+        '''
     
     Various imputation methods available in this module are:
     Mean, Median, Mode, User define value, Random Sample distribution
     
     Parameters:
+    -----------
         Allowed values for
         method : 'frequent', 'custom_value', 'random'
         value : if method ='custom_value' then user can pass on the imputation value in this parameter
@@ -111,15 +144,22 @@ class MissingDataImputer_Categorical:
                         which will take value 1 if there's a missing value in var or 
                         0 if there's no missing value in var
     '''
-    
-    def __init__ (self, method, add_indicator = True, value='Missing', random_state =1):
         self.method = method
         self.value = value
         self.random_state = random_state
         self.add_indicator = add_indicator
         
     def fit (self, df, variables):
+        '''
+        The fit function imputes the dataset for the missing values based on the strategy or method used and stores it into a
+        dictionary 'param_dict_' variable
         
+        Parameters:
+        -----------
+            df : df defines the dataset
+            variables : list of variables to be imputed
+
+        '''
         if self.method =='frequent':
             self.param_dict_ = {}
             
@@ -139,12 +179,26 @@ class MissingDataImputer_Categorical:
             self.param_dict_ = {var:self.value for var in variables}
 
         if self.method =='random':
-            None
+            for var in variables:
+                n_miss = df[var].isnull().sum()
+                n_miss_perc = df[var].isnull().mean()*100
+                if n_miss_perc >50:
+                    print(f'Random Value Imputation will not be suitable for {var}')
             
         return self
     
     def transform(self, df):
+        '''
+        The transform function applies the changes to the data after the fit function imputation is made in a dictionary variable
         
+        Parameters:
+        -----------
+            df : df defines the dataset
+            
+        Return : 
+        ------- 
+            returns the dataframe after imputation
+        '''
         if self.method == 'random':
             df = self.__random_imputer__(df)
         

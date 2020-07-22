@@ -64,7 +64,12 @@ class MissingDataImputer_Numerical:
                 self.param_dict_ = {var:self.value for var in variables}
         
         if self.method =='random':
-            None
+            for var in variables:
+                n_miss = df[var].isnull().sum()
+                n_miss_perc = df[var].isnull().mean()*100
+                if n_miss_perc >50:
+                    print(f'Random Value Imputation will not be suitable for {var}')
+
             
         return self
     
@@ -174,7 +179,11 @@ class MissingDataImputer_Categorical:
             self.param_dict_ = {var:self.value for var in variables}
 
         if self.method =='random':
-            None
+            for var in variables:
+                n_miss = df[var].isnull().sum()
+                n_miss_perc = df[var].isnull().mean()*100
+                if n_miss_perc >50:
+                    print(f'Random Value Imputation will not be suitable for {var}')
             
         return self
     

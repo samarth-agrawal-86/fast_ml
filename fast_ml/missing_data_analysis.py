@@ -10,8 +10,8 @@ from fast_ml.utilities import printmd ,  normality_diagnostic  ,  plot_categorie
 
 class MissingDataAnalysis:
     def __init__ (self, df, target = None, model = None):
-        '''
-        Analysing and Imputing Missing Data  
+         '''
+        Analysing the best method for Imputing Missing Data  
     
         Parameters:
         -----------
@@ -25,11 +25,10 @@ class MissingDataAnalysis:
         self.__target__ = target
         self.__model__ = model
 
-
         
         
     def calculate_missing_values(self):
-        '''
+         '''
         dataframe with all the variables having missing values ordered by the percentage of missing_value_counts along with datatype of that particular variable
             
         Parameters: No Parameters needed.
@@ -64,7 +63,7 @@ class MissingDataAnalysis:
 
 
     def explore_categorical_imputation (self, variable):
-        '''
+         '''
         Parameters:
         -----------
             df :Dataset we are working on for Analysis.
@@ -87,93 +86,91 @@ class MissingDataAnalysis:
             methods(strategy) along with columns for imputed value.
             
         Compares the results from various imputation methods so that you can choose the best suited one
-
             # 1st chart => existing categories and avg target value
             # 2nd chart => missing value replaced by frequent category ; then plot a chart with target value
             # 3rd chart => missing value replaced by 'Missing' category ; then plot a chart with target value
             # 4th chart => missing value replaced by random distribution ; then plot a chart with target value
         '''
+            
         df = self.__df__
         c = variable
 
         
         printmd ('**<u>Missing Values :</u>**')
 
-
-        print ('  Number :', df[c].isnull().sum())
-        print ('  Percentage :', df[c].isnull().mean()*100, '%')
+        n_miss = df[c].isnull().sum()
+        n_miss_perc = df[c].isnull().mean()*100
+        print ('  Number :', n_miss)
+        print ('  Percentage :', n_miss_perc, '%')
         print ()
 
+        if n_miss ==0:
+            print('No Missing values... ')
+            print('\n Stopping the process')
         
-        printmd(f'**<u>We have following options for Imputing the Missing Value for Categorical Variable, {c} :</u>**')
+        else:
 
-        print ('  1. Imputing missing values by Frequent Category' )
-        print ('  2. Imputing missing values by Missing Label' )
-        print ('  3. Imputing missing values by Randomly selected value' )
+            printmd(f'**<u>We have following options for Imputing the Missing Value for Categorical Variable, {c} :</u>**')
 
-        print ()
-        print ("Let's visualize the impact of each imputation and compare it with original distribution")
-        print ()
+            print ('  1. Imputing missing values by Frequent Category' )
+            print ('  2. Imputing missing values by Missing Label' )
+            print ('  3. Imputing missing values by Randomly selected value' )
 
+            print ()
+            print ("Let's visualize the impact of each imputation and compare it with original distribution")
+            print ()
+
+
+            printmd ('**<u>1. Original Distribution of all Categories :</u>**')
+            plot_categories_with_target(df, c, target = self.__target__)
+
+            printmd ('**<u>2. All Categories after Frequent Category Imputation :</u>**')
+
+
+            # Frequent value
+            print ('Look at the Distibution of Frequent Category and Missing Data. Are there some major differences')
+            fig = plt.figure(figsize = (8,4))
+            ax = fig.add_subplot(111)
+
+            value = df[c].mode().item()
+            print ('\n\nMost Frequent Category: ', value)
+
+            df[df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
+
+            # NA Value
+            df[df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
+
+            # Add the legend
+            labels = ['Most Frequent category', 'with NA']
+            ax.legend(labels, loc = 'best')
+            plt.show()
+
+
+            df[c+'_freq'] = df[c].fillna(value)
+
+
+            plot_categories_with_target(df, c+'_freq', target = self.__target__)
+
+
+            print ("3. All Categories after Missing Label Imputation")
+            value = 'Missing'
+            df[c+'_miss'] = df[c].fillna(value)
+
+            plot_categories_with_target(df, c+'_miss', target = self.__target__)
+
+
+            print ("4. All Categories after Randomly Selected Value Imputation")
+            if n_miss_perc <50:
+                temp = self.__random_category_imputation__(c)
+                plot_categories_with_target(temp, c+'_random', target = self.__target__)
+            else:
+                print('Since more than 50% Missing Value... Random value transformation is not advisable ')
         
-        printmd ('**<u>1. Original Distribution of all Categories :</u>**')
-        plot_categories_with_target(df, c, target = self.__target__)
         
-        printmd ('**<u>2. All Categories after Frequent Category Imputation :</u>**')
-        
-
-        # Frequent value
-        print ('Look at the Distibution of Frequent Category and Missing Data. Are there some major differences')
-        fig = plt.figure(figsize = (8,4))
-        ax = fig.add_subplot(111)
-
-        value = df[c].mode().item()
-        print ('\n\nMost Frequent Category: ', value)
-
-        df[df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
-
-        # NA Value
-        df[df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
-
-        # Add the legend
-        labels = ['Most Frequent category', 'with NA']
-        ax.legend(labels, loc = 'best')
-        plt.show()
-
-
-        df[c+'_freq'] = df[c].fillna(value)
-
-        
-        plot_categories_with_target(df, c+'_freq', target = self.__target__)
-        
-        
-        print ("3. All Categories after Missing Label Imputation")
-        value = 'Missing'
-        df[c+'_miss'] = df[c].fillna(value)
-        
-        plot_categories_with_target(df, c+'_miss', target = self.__target__)
-        
-        
-        print ("4. All Categories after Randomly Selected Value Imputation")
-        temp = self.__random_category_imputation__(c)
-        plot_categories_with_target(temp, c+'_random', target = self.__target__)
-        
-
         
     
 
     def __random_category_imputation__(self, c):
-        """
-        Parameters:
-        -----------
-            df : Dataset we are working on for Analysis.
-            c: variable within the list
-        
-        Returns:
-        --------
-            Dataset with Random_Imputed values for individual variables
-                
-        """
 
         # Get the number of null values for variable
         number_nulls = self.__df__[c].isnull().sum()

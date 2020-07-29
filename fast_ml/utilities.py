@@ -24,7 +24,7 @@ def normality_diagnostic ( s):
     plt.show()
 
 
-def missing_rare_category (df, c, add_missing, add_rare, tol=0.05):
+def missing_rare_category (df, c, add_missing, add_rare, rare_tol=0.05):
     length_df = len(df)
     
     if add_missing:
@@ -34,16 +34,16 @@ def missing_rare_category (df, c, add_missing, add_rare, tol=0.05):
     s.sort_values(ascending = False, inplace = True)
     
     if add_rare:
-        non_rare_label = [ix for ix, perc in s.items() if perc>tol]
+        non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol]
         df[c] = np.where(df[c].isin(non_rare_label), df[c], 'Rare')
 
     return df
         
-def  plot_categories ( df, c,  add_missing = False, add_rare = False, tol=0.05):
+def  plot_categories ( df, c,  add_missing = False, add_rare = False, rare_tol=0.05):
 
     length_df = len(df)
     
-    df =  missing_rare_category (df, c, add_missing, add_rare, tol=0.05)
+    df =  missing_rare_category (df, c, add_missing, add_rare, rare_tol=0.05)
 
     plot_df = pd.Series(df[c].value_counts() / length_df)
     plot_df.sort_values(ascending = False, inplace = True)
@@ -53,11 +53,11 @@ def  plot_categories ( df, c,  add_missing = False, add_rare = False, tol=0.05):
     ax = plot_df.plot.bar(color = 'royalblue')
     ax.set_xlabel(c)
     ax.set_ylabel('Percentage')
-    ax.axhline(y=0.05, color = 'red')
+    ax.axhline(y=rare_tol, color = 'red')
     plt.show()
 
     
-def  plot_categories_with_target ( df, c, target):
+def  plot_categories_with_target ( df, c, target, rare_tol=0.05):
 
     plot_df =  calculate_mean_target_per_category (df, c, target)
     #plot_df.reset_index(drop = True, inplace=True)
@@ -71,7 +71,7 @@ def  plot_categories_with_target ( df, c, target):
     ax2 = ax.twinx()
     ax2.plot(plot_df.index, plot_df[target], color = 'green')
 
-    ax.axhline(y=0.05, color = 'red')
+    ax.axhline(y=rare_tol, color = 'red')
 
     ax.set_xlabel(c)
     ax.set_ylabel('Percentage Distribution')
@@ -119,11 +119,12 @@ def  plot_target_with_categories (df, c, target):
 def display_all(df):
     with pd.option_context('display.max_rows', 1000, 'display.max_columns', 1000):
         display(df)
+
         
-def rare_encoding(df, variables, tol = 0.05):
+def rare_encoding(df, variables, rare_tol = 0.05):
     for var in variables:
         s = df[var].value_counts()/len(df[var])
-        non_rare_labels = [cat for cat, perc in s.items() if perc >=tol]
+        non_rare_labels = [cat for cat, perc in s.items() if perc >=rare_tol]
         df[var] = np.where(df[var].isin(non_rare_labels), df[var], 'Rare')
         
     return df

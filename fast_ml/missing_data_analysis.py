@@ -10,17 +10,16 @@ from fast_ml.utilities import printmd ,  normality_diagnostic  ,  plot_categorie
 
 class MissingDataAnalysis:
     def __init__ (self, df, target = None, model = None):
-         '''
+        """
         Analysing the best method for Imputing Missing Data  
     
         Parameters:
         -----------
             df : Dataset we are working on for Analysis.
             model : default is None. Most of the encoding methods can be used for both classification and regression problems. 
-            target : target variable if any target 
-            
-        
-        '''
+            target : target variable if any target
+        """
+         
         self.__df__ = df
         self.__target__ = target
         self.__model__ = model
@@ -28,7 +27,7 @@ class MissingDataAnalysis:
         
         
     def calculate_missing_values(self):
-         '''
+        """
         dataframe with all the variables having missing values ordered by the percentage of missing_value_counts along with datatype of that particular variable
             
         Parameters: No Parameters needed.
@@ -36,16 +35,19 @@ class MissingDataAnalysis:
         
         Returns: It display dataset with missing counts/percentages.
         --------
-        '''
+        """
+
         df = self.__df__
         vars_with_na = [var for var in df.columns if df[var].isnull().mean()>0]
-        miss_df = pd.concat([df[vars_with_na].isnull().mean().mul(100), df[vars_with_na].dtypes], axis=1 )
+        miss_df = pd.concat([df[vars_with_na].isnull().sum(), 
+                             df[vars_with_na].isnull().mean().mul(100), 
+                             df[vars_with_na].dtypes], axis=1 )
         miss_df.reset_index(inplace = True)
-        miss_df.columns = ['variables', 'na_perc', 'dtype']
-        miss_df.sort_values(by = 'na_perc' , ascending = False, inplace = True)
+        miss_df.columns = ['variables', 'num_miss','perc_miss', 'dtype']
+        miss_df.sort_values(by = 'perc_miss' , ascending = False, inplace = True)
         miss_df.reset_index(inplace = True, drop=True)
         
-        display_all(miss_df)
+        return miss_df
 
 
     # ------------------------------------------------------#
@@ -63,7 +65,7 @@ class MissingDataAnalysis:
 
 
     def explore_categorical_imputation (self, variable):
-         '''
+        """
         Parameters:
         -----------
             df :Dataset we are working on for Analysis.
@@ -90,7 +92,8 @@ class MissingDataAnalysis:
             # 2nd chart => missing value replaced by frequent category ; then plot a chart with target value
             # 3rd chart => missing value replaced by 'Missing' category ; then plot a chart with target value
             # 4th chart => missing value replaced by random distribution ; then plot a chart with target value
-        '''
+        """
+
             
         df = self.__df__
         c = variable
@@ -129,21 +132,25 @@ class MissingDataAnalysis:
 
             # Frequent value
             print ('Look at the Distibution of Frequent Category and Missing Data. Are there some major differences')
-            fig = plt.figure(figsize = (8,4))
-            ax = fig.add_subplot(111)
 
-            value = df[c].mode().item()
-            print ('\n\nMost Frequent Category: ', value)
+            if n_miss>10:
+                fig = plt.figure(figsize = (8,4))
+                ax = fig.add_subplot(111)
 
-            df[df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
+                value = df[c].mode().item()
+                print ('\n\nMost Frequent Category: ', value)
 
-            # NA Value
-            df[df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
+                df[df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
 
-            # Add the legend
-            labels = ['Most Frequent category', 'with NA']
-            ax.legend(labels, loc = 'best')
-            plt.show()
+                # NA Value
+                df[df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
+
+                # Add the legend
+                labels = ['Most Frequent category', 'with NA']
+                ax.legend(labels, loc = 'best')
+                plt.show()
+            else:
+                print ('Not plotting the KDE plot because number of missing values is less than 10')
 
 
             df[c+'_freq'] = df[c].fillna(value)

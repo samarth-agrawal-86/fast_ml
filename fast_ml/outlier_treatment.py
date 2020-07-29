@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def check_outliers(df, variables=None, tol=1.5):
+def check_outliers(df, variables=None, tol=1.5, print_vars = False):
     """
     This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation
     IQR is defined as quartile_3 - quartile_1
@@ -24,9 +24,15 @@ def check_outliers(df, variables=None, tol=1.5):
     outlier_dict = {}
     
     if variables == None:
-        variables = df.select_dtypes('int', 'float').columns
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns
+        if print_vars:
+            print(variables)
+        
     else:
         variables = variables
+        if print_vars:
+            print(variables)
         
     for var in variables:
         s = df.loc[df[var].notnull(), var]
@@ -38,12 +44,13 @@ def check_outliers(df, variables=None, tol=1.5):
         
         lower_bound_outlier = np.sum(s<lower_bound)
         upper_bound_outlier = np.sum(s>upper_bound)
-        if lower_bound_outlier >0 or upper_bound_outlier>0:
-            outlier_dict[var] = {'lower_bound_outliers': lower_bound_outlier, 
+        #if lower_bound_outlier >0 or upper_bound_outlier>0:
+        outlier_dict[var] = {'lower_bound_outliers': lower_bound_outlier, 
                                  'upper_bound_outliers' : upper_bound_outlier,
                                  'total_outliers' : lower_bound_outlier+upper_bound_outlier} 
     
-    outlier_df = pd.DataFrame(data = outlier_dict).transpose().sort_values(by='total_outliers' , ascending = False)
+    outlier_df = pd.DataFrame(data = outlier_dict).transpose()
+    outlier_df = outlier_df.sort_values(by='total_outliers' , ascending = False)
     outlier_df['perc_outliers'] = (outlier_df['total_outliers'] / len(df)).mul(100)
     
     return outlier_df
@@ -72,7 +79,7 @@ class OutlierTreatment():
         self.tol = tol
         
         
-    def fit(self, df, variables):
+    def fit(self, df, variables=None):
         """
         Parameters:
         -----------
@@ -85,7 +92,9 @@ class OutlierTreatment():
         self.param_dict_ ={}
         
         if variables == None:
-            variables = df.select_dtypes('int', 'float').columns
+            variables = df.select_dtypes(exclue = ['object']).columns
+            # Check for datetime variable. exclude = 'datetime', 'datetime64'
+            #variables = df.select_dtypes(include = ['int', 'float']).columns
         else:
             variables = variables
         

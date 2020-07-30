@@ -3,14 +3,14 @@ import numpy as np
 from fast_ml.utilities import rare_encoding
 
 class FeatureEngineering_Categorical:
-    def __init__(self, model=None, method='label', drop_last=True, n_frequent=None, rare_tol=0.05):
-        '''
+    def __init__(self, model=None, method='label', drop_last=False, n_frequent=None):
+        """
         Parameters:
         -----------
             model : default is None. Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model to be defined as 'classification' or 'clf'
             method :
-                'rare-encoding' or 'rare' : for combining less frequent categories into 'Rare' label first. 
-                'one-hot' : for one hot encoding
+                'rare_encoding' or 'rare' : for combining less frequent categories into 'Rare' label first. 
+                'one-hot' or 'onehot' : for one hot encoding
                 'integer' or 'label' : converts categories into codes
                 'count' : converts categories into the count of occurrences
                 'freq' : converts categories into the freq of occurrences
@@ -19,7 +19,7 @@ class FeatureEngineering_Categorical:
                 Target encoding methods
                 'target_ordered' : converts categories into codes but in the descending order of mean target value
                 'target_mean' : converts categories into mean target value
-                'target_prob' : only for classification models, takes the ratio of target =1 / target =0
+                'target_prob_ratio' : only for classification models, takes the ratio of target =1 / target =0
                 'target_woe' : only for classification models, calculates the weight of evidence(woe) for each category and replaces the value for that
                 
             drop_last : if method = 'one-hot' then use this parameter to drop last category 
@@ -27,15 +27,14 @@ class FeatureEngineering_Categorical:
             rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
             
-        '''
+        """
         self.method = method
         self.drop_last = drop_last
         self.n_frequent = n_frequent
         self.model = model
         self.drop_last = drop_last
-        self.rare_tol = rare_tol
         
-    def fit(self, df, variables, target=None):
+    def fit(self, df, variables, target=None, rare_tol=0.05):
         '''
         
         Parameters:
@@ -43,8 +42,11 @@ class FeatureEngineering_Categorical:
             df : training dataset
             variables : list of all the categorical variables
             target : target variable if any target encoding method is used
+            rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
+
             
         '''
+        self.rare_tol = rare_tol
         self.param_dict_ = {}
         
         if self.method == 'rare_encoding' or self.method == 'rare':

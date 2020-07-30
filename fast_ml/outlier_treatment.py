@@ -92,7 +92,7 @@ class OutlierTreatment():
         self.param_dict_ ={}
         
         if variables == None:
-            variables = df.select_dtypes(exclue = ['object']).columns
+            variables = df.select_dtypes(exclude = ['object']).columns
             # Check for datetime variable. exclude = 'datetime', 'datetime64'
             #variables = df.select_dtypes(include = ['int', 'float']).columns
         else:

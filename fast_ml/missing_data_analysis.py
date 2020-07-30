@@ -20,7 +20,7 @@ class MissingDataAnalysis:
             target : target variable if any target
         """
          
-        self.__df__ = df
+        self.__miss_df__ = df.copy(deep=True)
         self.__target__ = target
         self.__model__ = model
 
@@ -37,7 +37,7 @@ class MissingDataAnalysis:
         --------
         """
 
-        df = self.__df__
+        df = self.__miss_df__
         vars_with_na = [var for var in df.columns if df[var].isnull().mean()>0]
         miss_df = pd.concat([df[vars_with_na].isnull().sum(), 
                              df[vars_with_na].isnull().mean().mul(100), 
@@ -66,12 +66,10 @@ class MissingDataAnalysis:
 
     def explore_categorical_imputation (self, variable):
         """
+        In this function you just pass each variable one-by-one to explore the various missing value treatments
         Parameters:
         -----------
-            df :Dataset we are working on for Analysis.
-            model : default is None. Most of the encoding methods can be used for both classification and regression problems. 
-            variables : list of all the categorical variables
-            target : target variable if any target 
+            variables : single categorical variable
             
             Methods for Imputation:
                 method : 
@@ -95,14 +93,14 @@ class MissingDataAnalysis:
         """
 
             
-        df = self.__df__
+        miss_df = self.__miss_df__
         c = variable
 
         
         printmd ('**<u>Missing Values :</u>**')
 
-        n_miss = df[c].isnull().sum()
-        n_miss_perc = df[c].isnull().mean()*100
+        n_miss = miss_df[c].isnull().sum()
+        n_miss_perc = miss_df[c].isnull().mean()*100
         print ('  Number :', n_miss)
         print ('  Percentage :', n_miss_perc, '%')
         print ()
@@ -125,7 +123,7 @@ class MissingDataAnalysis:
 
 
             printmd ('**<u>1. Original Distribution of all Categories :</u>**')
-            plot_categories_with_target(df, c, target = self.__target__)
+            plot_categories_with_target(miss_df, c, target = self.__target__)
 
             printmd ('**<u>2. All Categories after Frequent Category Imputation :</u>**')
 
@@ -137,13 +135,13 @@ class MissingDataAnalysis:
                 fig = plt.figure(figsize = (8,4))
                 ax = fig.add_subplot(111)
 
-                value = df[c].mode().item()
+                value = miss_df[c].mode().item()
                 print ('\n\nMost Frequent Category: ', value)
 
-                df[df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
+                miss_df[miss_df[c] == value][self.__target__].plot(kind = 'kde', ax = ax, color = 'blue')
 
                 # NA Value
-                df[df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
+                miss_df[miss_df[c].isnull()][self.__target__].plot(kind = 'kde', ax = ax, color = 'red')
 
                 # Add the legend
                 labels = ['Most Frequent category', 'with NA']
@@ -153,17 +151,17 @@ class MissingDataAnalysis:
                 print ('Not plotting the KDE plot because number of missing values is less than 10')
 
 
-            df[c+'_freq'] = df[c].fillna(value)
+            miss_df[c+'_freq'] = miss_df[c].fillna(value)
 
 
-            plot_categories_with_target(df, c+'_freq', target = self.__target__)
+            plot_categories_with_target(miss_df, c+'_freq', target = self.__target__)
 
 
             print ("3. All Categories after Missing Label Imputation")
             value = 'Missing'
-            df[c+'_miss'] = df[c].fillna(value)
+            miss_df[c+'_miss'] = miss_df[c].fillna(value)
 
-            plot_categories_with_target(df, c+'_miss', target = self.__target__)
+            plot_categories_with_target(miss_df, c+'_miss', target = self.__target__)
 
 
             print ("4. All Categories after Randomly Selected Value Imputation")
@@ -180,18 +178,18 @@ class MissingDataAnalysis:
     def __random_category_imputation__(self, c):
 
         # Get the number of null values for variable
-        number_nulls = self.__df__[c].isnull().sum()
+        number_nulls = self.__miss_df__[c].isnull().sum()
 
         # Get that many number of values from dataset chosen at random
-        random_sample = self.__df__[c].dropna().sample(number_nulls, random_state = 0)
+        random_sample = self.__miss_df__[c].dropna().sample(number_nulls, random_state = 0)
 
         # Set the index of random sample to that of null values
-        random_sample.index = self.__df__[self.__df__[c].isnull()].index
+        random_sample.index = self.__miss_df__[self.__miss_df__[c].isnull()].index
 
         # make a copy of dataset including NA
-        self.__df__[c+'_random'] = self.__df__[c].copy()
+        self.__miss_df__[c+'_random'] = self.__miss_df__[c].copy()
 
         # replace the NA in newly created variable
-        self.__df__.loc[self.__df__[c].isnull(), c+'_random'] = random_sample
+        self.__miss_df__.loc[self.__miss_df__[c].isnull(), c+'_random'] = random_sample
 
-        return self.__df__
+        return self.__miss_df__

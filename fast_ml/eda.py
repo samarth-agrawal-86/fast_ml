@@ -351,7 +351,7 @@ def  eda_category_plots_with_target(df, variables, target, add_missing = True, a
 
         plt.show()
 
-def eda_categorical_variable(df, variable, model = None, target=None, add_missing=False, add_rare=False, rare_tol=0.05):
+def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=0.05):
     """
     This function provides EDA for Categorical variable, this includes 
         - Counts
@@ -373,8 +373,6 @@ def eda_categorical_variable(df, variable, model = None, target=None, add_missin
             For classification related analysis. use 'classification' or 'clf'
             For regression related analysis. use 'regression' or 'reg'
         target : Define the target variable, if you want to see the relationship between given list of varaible with Target variable, default None
-        add_missing : default False. if True it will replace missing values by 'Missing'
-        add_rare : default False. If True it will group all the smaller categories in a 'rare' category
         rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category   
             
         

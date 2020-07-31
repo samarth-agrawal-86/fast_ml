@@ -24,13 +24,13 @@ def normality_diagnostic ( s):
     plt.show()
 
 
-def missing_rare_category (df, c, add_missing, add_rare, rare_tol=0.05):
+def missing_rare_category (df, c, add_missing, add_rare, rare_tol=5):
     length_df = len(df)
     
     if add_missing:
         df[c] = df[c].fillna('Missing')
     
-    s = pd.Series(df[c].value_counts() / length_df)
+    s = 100*pd.Series(df[c].value_counts() / length_df)
     s.sort_values(ascending = False, inplace = True)
     
     if add_rare:
@@ -39,13 +39,13 @@ def missing_rare_category (df, c, add_missing, add_rare, rare_tol=0.05):
 
     return df
         
-def  plot_categories ( df, c,  add_missing = False, add_rare = False, rare_tol=0.05):
+def  plot_categories ( df, c,  add_missing = False, add_rare = False, rare_tol=5):
 
     length_df = len(df)
     
-    df =  missing_rare_category (df, c, add_missing, add_rare, rare_tol=0.05)
+    df =  missing_rare_category (df, c, add_missing, add_rare, rare_tol=5)
 
-    plot_df = pd.Series(df[c].value_counts() / length_df)
+    plot_df = 100*pd.Series(df[c].value_counts() / length_df)
     plot_df.sort_values(ascending = False, inplace = True)
 
 
@@ -57,7 +57,7 @@ def  plot_categories ( df, c,  add_missing = False, add_rare = False, rare_tol=0
     plt.show()
 
     
-def  plot_categories_with_target ( df, c, target, rare_tol=0.05):
+def  plot_categories_with_target ( df, c, target, rare_tol=5):
 
     plot_df =  calculate_mean_target_per_category (df, c, target)
     #plot_df.reset_index(drop = True, inplace=True)
@@ -95,7 +95,7 @@ def  calculate_mean_target_per_category (df, c, target):
 def  calculate_mean_target_per_category (df, c, target):
     
     length_df = len(df)
-    data = {'count' : df[c].value_counts(), 'perc' : df[c].value_counts()/length_df}
+    data = {'count' : df[c].value_counts(), 'perc' : 100*df[c].value_counts()/length_df}
     temp = pd.DataFrame(data)
     temp = pd.concat([temp, pd.DataFrame(df.groupby(c)[target].mean())], axis=1)
 

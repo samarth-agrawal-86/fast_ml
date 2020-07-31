@@ -6,9 +6,40 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import Markdown, display
-from fast_ml.utilities import printmd , normality_diagnostic , plot_categories , \
+from fast_ml.utilities import printmd , display_all, normality_diagnostic , plot_categories , \
 plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories
 
+
+def eda_summary(df):
+    """
+    This function gives following insights about each variable -
+        Datatype of that variable
+        Number of unique values is inclusive of missing values if any
+        Also displays the some of the unique values. (set to display upto 10 values)
+        Number of missing values in that variable
+        Percentage of missing values for that variable
+
+    Parameters:
+    ----------
+        df : dataframe for analysis
+
+    Returns:
+    --------
+        df : returns a dataframe that contains useful info for the analysis
+    """
+    data_dict = {}
+    for var in df.columns:
+    
+        data_dict[var] = {'data_type': df[var].dtype, 
+                          'num_unique_values': df[var].nunique(),
+                          'sample_unique_values' : df[var].unique()[0:10].tolist(),
+                          'num_missing' : df[var].isnull().sum(),
+                          'perc_missing' : 100*df[var].isnull().mean()
+                         }
+
+    info_df = pd.DataFrame(data_dict).transpose()
+    info_df = info_df[['data_type', 'num_unique_values', 'sample_unique_values', 'num_missing', 'perc_missing']]
+    return info_df
    
 def eda_numerical_variable(df, variable, model = None, target=None, threshold = 20):
     """
@@ -33,8 +64,7 @@ def eda_numerical_variable(df, variable, model = None, target=None, threshold = 
     
     Return :
     -------
-     
-     Returns summary & plots of given variable
+        Returns summary & plots of given variable
     """
     eda_df = df.copy(deep=True)
     c = variable
@@ -179,32 +209,52 @@ def eda_numerical_variable(df, variable, model = None, target=None, threshold = 
             print ("Can't compute Yeo Johnson transformation")
 
         
-def eda_numerical_plots(df, variables):
+def eda_numerical_plots(df, variables, normality_check = False):
     """
+    This function generates the univariate plot for the all the variables in the input variables list. 
+    normality check and kde plot is optional
 
     Parameters:
     -----------
-    df : Dataframe for which Analysis to be performed
-    variables : input type list. All the Numerical variables needed for plotting
-        
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the Numerical variables needed for plotting
+        normality_check: 'True' or 'False'
+            if True: then it will plot the Q-Q plot and kde plot for the variable
+            if False: just plot the histogram of the variable
 
     Returns:
     --------
-    Numerical plots for all the variables
+        Numerical plots for all the variables
 
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
 
-    for i, var in enumerate(variables, 1):
-        
-        try:
-            print (f'{i}. Plot for {var}')
-            s = eda_df[var]
-            normality_diagnostic(s)
+    if normality_check==True:
+        for i, var in enumerate(variables, 1):
+            
+            try:
+                print (f'{i}. Plot for {var}')
+                s = eda_df[var]
+                normality_diagnostic(s)
 
-        except:
-            print(f"Plots for variable : {var} can't be plotted")
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
+    if normality_check==False:
+        for i, var in enumerate(variables, 1):
+            
+            try:
+                print (f'{i}. Plot for {var}')
+                s = eda_df[var]
+                plt.figure(figsize = (12, 4))
+                sns.distplot(s, hist = True)
+                plt.title('Histogram')
+                plt.show()
+
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
 
 
 
@@ -212,20 +262,21 @@ def eda_numerical_plots(df, variables):
     
 def eda_numerical_plots_with_target(df, variables, target, model):
     """
+    This function generates the bi-variate plot for the all the variables in the input variables list with the target
 
     Parameters:
     -----------
-    df : Dataframe for which Analysis to be performed
-    variables : input type list. All the Numerical variables needed for plotting
-    target : Target variable
-    model : type of problem - classification or regression
-            For classification related analysis. use 'classification' or 'clf'
-            For regression related analysis. use 'regression' or 'reg'
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the Numerical variables needed for plotting
+        target : Target variable
+        model : type of problem - classification or regression
+                For classification related analysis. use 'classification' or 'clf'
+                For regression related analysis. use 'regression' or 'reg'
         
 
     Returns:
     --------
-    Numerical plots for all the variables
+        Numerical plots for all the variables
 
     """
     eda_df = df.copy(deep=True)
@@ -248,12 +299,22 @@ def eda_numerical_plots_with_target(df, variables, target, model):
                 print(f"Plots for variable : {var} can't be plotted")
 
     if model == 'regression' or model == 'reg':
-        print('Not configured yet')
+        for i, var in enumerate(variables, 1):
+            try:
+                print (f'{i}. Plot for {var}')
+                plt.figure(figsize = (10, 4))
+                sns.regplot(data = eda_df, x = var, y=target)
+                plt.show()
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
+
+        
 
 
 #### -------- Categorical Variables ------- #####
 
-def eda_category_plots(df, variables, add_missing = True, add_rare = False, rare_tol=0.05):
+def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=0.05):
     """
 
     Parameters:
@@ -299,9 +360,8 @@ def eda_category_plots(df, variables, add_missing = True, add_rare = False, rare
         plt.show()
 
 
-def  eda_category_plots_with_target(df, variables, target, add_missing = True, add_rare = False, rare_tol=0.05):
+def  eda_categorical_plots_with_target(df, variables, target, add_missing = True, add_rare = False, rare_tol=0.05):
     """
-
     Parameters:
     -----------
     df : Dataframe for which Analysis to be performed
@@ -309,7 +369,7 @@ def  eda_category_plots_with_target(df, variables, target, add_missing = True, a
     target : Target variable
     add_missing : default True. if True it will replace missing values by 'Missing'
     add_rare : default False. If True it will group all the smaller categories in a 'rare' category
-    rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
+    rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
     Returns:
     --------
@@ -350,8 +410,10 @@ def  eda_category_plots_with_target(df, variables, target, add_missing = True, a
 
 
         plt.show()
+        display_all(plot_df.set_index(var).transpose())
+        print()
 
-def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=0.05):
+def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=5):
     """
     This function provides EDA for Categorical variable, this includes 
         - Counts
@@ -373,7 +435,7 @@ def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=
             For classification related analysis. use 'classification' or 'clf'
             For regression related analysis. use 'regression' or 'reg'
         target : Define the target variable, if you want to see the relationship between given list of varaible with Target variable, default None
-        rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category   
+        rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category   
             
         
      Return :

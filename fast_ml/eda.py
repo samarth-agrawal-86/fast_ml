@@ -314,20 +314,20 @@ def eda_numerical_plots_with_target(df, variables, target, model):
 
 #### -------- Categorical Variables ------- #####
 
-def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=0.05):
+def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=5):
     """
 
     Parameters:
     -----------
-    df : Dataframe for which Analysis to be performed
-    variables : input type list. All the categorical variables needed for plotting
-    add_missing : default True. if True it will replace missing values by 'Missing'
-    add_rare : default False. If True it will group all the smaller categories in a 'rare' category
-    rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the categorical variables needed for plotting
+        add_missing : default True. if True it will replace missing values by 'Missing'
+        add_rare : default False. If True it will group all the smaller categories in a 'rare' category
+        rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
     Returns:
     --------
-    Category plots for all the variables
+        Category plots for all the variables
 
     """
     eda_df = df.copy(deep=True)
@@ -344,11 +344,11 @@ def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, r
         s.sort_values(ascending = False, inplace = True)
         
         if add_rare:
-            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol]
+            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
             eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
 
 
-        plot_df = pd.Series(eda_df[var].value_counts() / length_df)
+        plot_df = pd.Series(100*eda_df[var].value_counts() / length_df)
         plot_df.sort_values(ascending = False, inplace = True)
 
 
@@ -360,20 +360,20 @@ def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, r
         plt.show()
 
 
-def  eda_categorical_plots_with_target(df, variables, target, add_missing = True, add_rare = False, rare_tol=0.05):
+def  eda_categorical_plots_with_target(df, variables, target, add_missing = True, add_rare = False, rare_tol=5):
     """
     Parameters:
     -----------
-    df : Dataframe for which Analysis to be performed
-    variables : input type list. All the categorical variables needed for plotting
-    target : Target variable
-    add_missing : default True. if True it will replace missing values by 'Missing'
-    add_rare : default False. If True it will group all the smaller categories in a 'rare' category
-    rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the categorical variables needed for plotting
+        target : Target variable
+        add_missing : default True. if True it will replace missing values by 'Missing'
+        add_rare : default False. If True it will group all the smaller categories in a 'rare' category
+        rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
     Returns:
     --------
-    Category plots for all the variables
+        Category plots for all the variables
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
@@ -389,7 +389,7 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
         s.sort_values(ascending = False, inplace = True)
         
         if add_rare:
-            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol]
+            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
             eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
 
         plot_df =  calculate_mean_target_per_category (eda_df, var, target)

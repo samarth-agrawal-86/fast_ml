@@ -132,7 +132,7 @@ def rare_encoding(df, variables, rare_tol = 0.05):
 
 
 
-def reduce_memory_usage(df):
+def reduce_memory_usage(df, convert_to_category = False):
     """ 
         iterate through all the columns of a dataframe and modify the data type
         to reduce memory usage.        
@@ -144,7 +144,8 @@ def reduce_memory_usage(df):
         Parameter:
         ----------
             df : dataframe which needs to be optimized
-            
+            convert_to_category : 'True' , 'False'. (default value = False) If true it will convert all 'object' type variables as category type. 
+
         Returns:
         --------
             df : returns the reduced dataframe
@@ -175,7 +176,10 @@ def reduce_memory_usage(df):
                 else:
                     df[col] = df[col].astype(np.float64)
         else:
-            df[col] = df[col].astype('category')
+            if convert_to_category == True:
+                df[col] = df[col].astype('category')
+            else:
+                None
 
     end_mem = df.memory_usage().sum() / 1024**2
     print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))

@@ -34,7 +34,7 @@ class FeatureEngineering_Categorical:
         self.model = model
         self.drop_last = drop_last
         
-    def fit(self, df, variables, target=None, rare_tol=0.05):
+    def fit(self, df, variables, target=None, rare_tol=5):
         '''
         
         Parameters:
@@ -42,7 +42,7 @@ class FeatureEngineering_Categorical:
             df : training dataset
             variables : list of all the categorical variables
             target : target variable if any target encoding method is used
-            rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
+            rare_tol : Threshold limit to combine the rare occurrence categories, (default value of rare_tol=5)  i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
             
         '''
@@ -133,7 +133,7 @@ class FeatureEngineering_Categorical:
         
         if self.method == 'rare_encoding' or self.method == 'rare':
             for var, mapper in self.param_dict_.items():
-                non_rare_labels = [cat for cat, perc in mapper.items() if perc >=self.rare_tol]
+                non_rare_labels = [cat for cat, perc in mapper.items() if perc >=self.rare_tol/100]
                 df[var] = np.where(df[var].isin(non_rare_labels), df[var], 'Rare')
 
         if self.method == 'one-hot' or self.method == 'onehot':

@@ -368,7 +368,10 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
         variables : input type list. All the categorical variables needed for plotting
         target : Target variable
         add_missing : default True. if True it will replace missing values by 'Missing'
-        add_rare : default False. If True it will group all the smaller categories in a 'rare' category
+        add_rare : default = False. 
+            :True: If True it will group all the smaller categories in a 'rare' category
+            :False: If True it will not group all the smaller categories in a 'rare' category
+            :both: it will show you categorical plots - as is and after grouping all smaller categories
         rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
     Returns:
@@ -388,7 +391,7 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
         s = pd.Series(eda_df[var].value_counts() / length_df)
         s.sort_values(ascending = False, inplace = True)
         
-        if add_rare:
+        if add_rare==True:
             non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
             eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
 
@@ -407,11 +410,34 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
         ax.set_xlabel(var)
         ax.set_ylabel('Percentage Distribution')
         ax2.set_ylabel('Mean Target Value')
-
-
         plt.show()
         display_all(plot_df.set_index(var).transpose())
         print()
+
+        if add_rare =='both':
+            print('Cateroical Plots after grouping into Rare Category')
+            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
+            eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
+
+            plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+
+            fig, ax = plt.subplots(figsize=(12,4))
+            plt.xticks(plot_df.index, plot_df[var], rotation = 90)
+
+            ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
+
+            ax2 = ax.twinx()
+            ax2.plot(plot_df.index, plot_df[target], color = 'green')
+
+            ax.axhline(y=rare_tol, color = 'red')
+
+            ax.set_xlabel(var)
+            ax.set_ylabel('Percentage Distribution')
+            ax2.set_ylabel('Mean Target Value')
+            plt.show()
+            display_all(plot_df.set_index(var).transpose())
+            print()
+
 
 def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=5):
     """

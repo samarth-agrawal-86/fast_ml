@@ -2,11 +2,14 @@
  
 ## 0. Utilities
 1. Reduce Memory Usage
-`from fast_ml.utilities import reduce_memory_usage`
-
-`df = reduce_memory_usage(df, convert_to_category=False)`
-
 2. Display All rows and columns function
-`from fast_ml.utilities import display_all`
 
-`display_all(df)`
+## 1. Exploratory Data Analysis (EDA)
+### Overview
+1. eda_summary
+### Numerical Variables
+1. eda_numerical_plots
+2. eda_numerical_plots_with_target
+### Categorical Variables
+1. eda_categorical_plots
+2. eda_categorical_plots_with_target

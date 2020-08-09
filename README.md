@@ -9,7 +9,7 @@
 
 ## 0. Utilities
 
-`from fast_ml.utilities import *`
+```from fast_ml.utilities import *```
 1. **reduce_memory_usage**(*df, convert_to_category = False*)
     * This function reduces the memory used by dataframe
 2. **display_all**(*df*)

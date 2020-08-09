@@ -55,21 +55,28 @@
 ## 3. Missing Data Imputation
 
 `from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical`
-### 3.1) MissingDataImputer_Numerical Class
+### 3.1) Class MissingDataImputer_Numerical 
 * fit(df, variables)
 * transform(df)
 
-### 3.2) MissingDataImputer_Categorical Class
+### 3.2) Class MissingDataImputer_Categorical
 * fit(df, variables)
 * transform(df)
 
-## 4. Feature Engineering
+## 4. Outlier Treatment
+
+`from fast_ml.outlier_treatment import check_outliers, OutlierTreatment`
+
+### 4.1) check_outliers(df, variables=None, tol=1.5, print_vars = False) 
+### 4.2) Class OutlierTreatment 
+
+## 5. Feature Engineering
 
 `from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime`
-### 4.1) FeatureEngineering_Numerical Class
+### 5.1) Class FeatureEngineering_Numerical 
 * TBD
 
-### 4.2) FeatureEngineering_Categorical Class
+### 5.2) Class FeatureEngineering_Categorical
 * Methods:
   - 'rare-encoding' or 'rare'
   - 'label' or 'integer'
@@ -81,5 +88,8 @@
   - 'target_prob_ratio'
   - 'target_woe'
  
-### 4.3) FeatureEngineering_DateTime
+### 5.3) FeatureEngineering_DateTime
 * FeatureEngineering_DateTime (df, datetime_var, prefix, drop_orig=True)
+
+
+## 6. Model Evaluation

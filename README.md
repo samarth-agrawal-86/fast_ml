@@ -10,9 +10,9 @@
 ## 0. Utilities
 
 `from fast_ml.utilities import *`
-1. **reduce_memory_usage**(df, convert_to_category = False)
+1. **reduce_memory_usage**(*df, convert_to_category = False*)
     * This function reduces the memory used by dataframe
-2. **display_all**(df)
+2. **display_all**(*df*)
     * Use this function to show all rows and all columns of dataframe. By default pandas only show top and bottom 20 rows, columns
 
 ## 1. Exploratory Data Analysis (EDA)
@@ -20,7 +20,7 @@
 `from fast_ml import eda`
 
 ### 1.1) Overview
-1. **eda.df_summary**(df)
+1. **eda.df_summary**(*df*)
     * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent
 
 ### 1.2) Numerical Variables

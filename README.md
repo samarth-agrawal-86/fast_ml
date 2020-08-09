@@ -29,7 +29,7 @@
 ## 2. Missing Data Analysis
 
 `from fast_ml.missing_data_analysis import MissingDataAnalysis`
-### 2.1 MissingDataAnalysis Class
+### 2.1) MissingDataAnalysis Class
 1. calculate_missing_values()
 2. explore_numerical_imputation (variable)
 3. explore_categorical_imputation (variable)
@@ -38,21 +38,21 @@
 ## 3. Missing Data Imputation
 
 `from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical`
-### 3.1 MissingDataImputer_Numerical Class
+### 3.1) MissingDataImputer_Numerical Class
 * fit(df, variables)
 * transform(df)
 
-### 3.2 MissingDataImputer_Categorical Class
+### 3.2) MissingDataImputer_Categorical Class
 * fit(df, variables)
 * transform(df)
 
 ## 4. Feature Engineering
 
 `from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime`
-### 4.1 FeatureEngineering_Numerical Class
+### 4.1) FeatureEngineering_Numerical Class
 * TBD
 
-### 4.2 FeatureEngineering_Categorical Class
+### 4.2) FeatureEngineering_Categorical Class
 * Methods:
  - 'rare-encoding' or 'rare'
  - 'label' or 'integer'
@@ -64,5 +64,5 @@
  - 'target_prob_ratio'
  - 'target_woe'
 
-### 4.3 FeatureEngineering_DateTime
+### 4.3) FeatureEngineering_DateTime
 * FeatureEngineering_DateTime (df, datetime_var, prefix, drop_orig=True)

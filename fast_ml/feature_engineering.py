@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from fast_ml.utilities import rare_encoding
+
 
 class FeatureEngineering_Categorical:
     def __init__(self, model=None, method='label', drop_last=False, n_frequent=None):
@@ -48,6 +48,11 @@ class FeatureEngineering_Categorical:
         '''
         self.rare_tol = rare_tol
         self.param_dict_ = {}
+        self.variables = variables
+
+        #Convert to 'Object' type
+        for var in self.variables:
+            df[var] = df[var].astype('object')
         
         if self.method == 'rare_encoding' or self.method == 'rare':
             for var in variables:
@@ -131,6 +136,11 @@ class FeatureEngineering_Categorical:
             dataframe with all the variables encoded
         '''
         
+        # Convert to object type
+        for var in self.variables:
+            df[var] = df[var].astype('object')
+
+
         if self.method == 'rare_encoding' or self.method == 'rare':
             for var, mapper in self.param_dict_.items():
                 non_rare_labels = [cat for cat, perc in mapper.items() if perc >=self.rare_tol/100]
@@ -140,6 +150,8 @@ class FeatureEngineering_Categorical:
             for var, mapper in self.param_dict_.items():
                 for category in mapper:
                     df[str(var) + '_' + str(category)] = np.where(df[var] ==category , 1, 0)
+
+                df.drop(var, axis=1, inplace=True)
             
         if self.method in ('integer', 'label', 'count', 'freq', 'frequency', 'ordered_label', 'target_ordered', 'target_mean'):
             for var, mapper in self.param_dict_.items():

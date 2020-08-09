@@ -10,17 +10,21 @@ def printmd(string):
     display(Markdown(string))
 
     
-def normality_diagnostic ( s):
-    plt.figure(figsize = (16, 4))
+def normality_diagnostic (s, var):
+    fig, ax = plt.subplots(figsize=(16,4))
 
-    plt.subplot(1,2,1)
-    sns.distplot(s, hist = True, fit = norm, kde = True)
-    plt.title('Histogram')
 
-    plt.subplot(1,2,2)
+    ax1 = plt.subplot(1,2,1)
+    ax1 = sns.distplot(s, hist = True, fit = norm, kde = True)
+    ax1.set_title('Histogram', fontsize=17)
+    ax1.set_xlabel(var, fontsize=14)
+    ax1.set_ylabel('Distribution', fontsize=14)
+
+    ax2 = plt.subplot(1,2,2)
     stats.probplot(s, dist="norm", plot=plt)
-    plt.ylabel('RM Quantiles')
-
+    plt.title('Probability Plot', fontsize=17)
+    plt.xlabel('Theoretical Quantiles', fontsize=14)
+    plt.ylabel('RM Quantiles', fontsize=14)
     plt.show()
 
 

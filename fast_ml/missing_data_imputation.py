@@ -146,7 +146,7 @@ class MissingDataImputer_Categorical:
                             0 if there's no missing value in var
         """
         self.method = method
-        self.value = value
+        self.value = str(value)
         self.random_state = random_state
         self.add_indicator = add_indicator
         
@@ -162,8 +162,11 @@ class MissingDataImputer_Categorical:
 
         '''
         self.variables = variables
+
+        for var in variables:
+            df[var] = df[var].astype('object')
         
-        if self.method =='frequent':
+        if self.method in ('frequent', 'mode'):
             self.param_dict_ = {}
             
             for var in variables:
@@ -208,9 +211,14 @@ class MissingDataImputer_Categorical:
         
         else:
             for var in self.param_dict_:
+
+                #convert to object type variable
+                df[var] = df[var].astype('object')
+
                 # Add indicator
                 if self.add_indicator == True:
                     df[var + '_nan'] = np.where(df[var].isnull(), 1, 0)
+                
                 # impute missing values
                 df[var].fillna(self.param_dict_[var] , inplace=True)
         
@@ -220,6 +228,9 @@ class MissingDataImputer_Categorical:
     def __random_imputer__(self, df):
         for var in self.variables:
             
+            #convert to object type variable
+            df[var] = df[var].astype('object')
+
             if df[var].isnull().sum()>0:
                 
                 # number of data point to extract at random

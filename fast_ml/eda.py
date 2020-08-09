@@ -10,7 +10,7 @@ from fast_ml.utilities import printmd , display_all, normality_diagnostic , plot
 plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories
 
 
-def eda_summary(df):
+def df_summary(df):
     """
     This function gives following insights about each variable -
         Datatype of that variable
@@ -41,7 +41,9 @@ def eda_summary(df):
     info_df = info_df[['data_type', 'num_unique_values', 'sample_unique_values', 'num_missing', 'perc_missing']]
     return info_df
    
-def eda_numerical_variable(df, variable, model = None, target=None, threshold = 20):
+#### -------- Numerical Variables ------- #####
+###############################################
+def numerical_variable_detail(df, variable, model = None, target=None, threshold = 20):
     """
     This provides basic EDA of the Numerical variable passed,
         - Basic Statistics like Count, Data Type, min, max, mean, median, etc., 
@@ -164,35 +166,35 @@ def eda_numerical_variable(df, variable, model = None, target=None, threshold = 
         try:
             s = np.where(s == 0, 1, s)
             s_log = np.log(s)
-            normality_diagnostic(s_log)
+            normality_diagnostic(s_log,c)
         except:
             print ("Can't compute log transformation")
 
         print ('2. Exponential Transformation')
         try:
             s_exp = np.exp(s)
-            normality_diagnostic(s_exp)
+            normality_diagnostic(s_exp,c)
         except:
             print ("Can't compute Exponential transformation")
 
         print ('3. Square Transformation')
         try:
             s_sqr = np.square(s)
-            normality_diagnostic(s_sqr)
+            normality_diagnostic(s_sqr,c)
         except:
             print ("Can't compute Square transformation")
 
         print ('4. Square-root Transformation')
         try:
             s_sqrt = np.sqrt(s)
-            normality_diagnostic(s_sqrt)
+            normality_diagnostic(s_sqrt,c)
         except:
             print ("Can't compute Square-root transformation")
 
         print ('5. Box-Cox Transformation')
         try:
             s_boxcox, lambda_param = stats.boxcox(s)
-            normality_diagnostic(s_boxcox)
+            normality_diagnostic(s_boxcox,c)
             print ('Optimal Lambda for Box-Cox transformation is :', lambda_param )
             print ()
         except:
@@ -202,14 +204,14 @@ def eda_numerical_variable(df, variable, model = None, target=None, threshold = 
         try:
             s = s.astype('float')
             s_yeojohnson, lambda_param = stats.yeojohnson(s)
-            normality_diagnostic(s_yeojohnson)
+            normality_diagnostic(s_yeojohnson,c)
             print ('Optimal Lambda for Yeo Johnson transformation is :', lambda_param )
             print ()
         except:
             print ("Can't compute Yeo Johnson transformation")
 
         
-def eda_numerical_plots(df, variables, normality_check = False):
+def numerical_plots(df, variables, normality_check = False):
     """
     This function generates the univariate plot for the all the variables in the input variables list. 
     normality check and kde plot is optional
@@ -234,9 +236,9 @@ def eda_numerical_plots(df, variables, normality_check = False):
         for i, var in enumerate(variables, 1):
             
             try:
-                print (f'{i}. Plot for {var}')
+                printmd (f'**<u> {i}. Plot for {var}</u>**')
                 s = eda_df[var]
-                normality_diagnostic(s)
+                normality_diagnostic(s, var)
 
             except:
                 print(f"Plots for variable : {var} can't be plotted")
@@ -247,9 +249,12 @@ def eda_numerical_plots(df, variables, normality_check = False):
             try:
                 print (f'{i}. Plot for {var}')
                 s = eda_df[var]
+
                 plt.figure(figsize = (12, 4))
-                sns.distplot(s, hist = True)
-                plt.title('Histogram')
+                ax1 = sns.distplot(s, hist = True)
+                ax1.set_title('Histogram', fontsize=17)
+                ax1.set_xlabel(var, fontsize=14)
+                ax1.set_ylabel('Distribution', fontsize=14)
                 plt.show()
 
             except:
@@ -260,7 +265,7 @@ def eda_numerical_plots(df, variables, normality_check = False):
 
 
     
-def eda_numerical_plots_with_target(df, variables, target, model):
+def numerical_plots_with_target(df, variables, target, model):
     """
     This function generates the bi-variate plot for the all the variables in the input variables list with the target
 
@@ -287,14 +292,21 @@ def eda_numerical_plots_with_target(df, variables, target, model):
         for i, var in enumerate(variables, 1):
 
             try:
-                print (f'{i}. Plot for {var}')
+                printmd (f'**<u> {i}. Plot for {var}</u>**')
                 plt.figure(figsize = (16, 4))
-                plt.subplot(1, 2, 1)
-                sns.boxplot(x=eda_df[target], y=var, data=eda_df)
-                plt.subplot(1, 2, 2)
-                sns.distplot(eda_df[eda_df[target] == 1][var], hist=False, label='Target=1')
-                sns.distplot(eda_df[eda_df[target] == 0][var], hist=False, label='Target=0')
+                ax1 = plt.subplot(1, 2, 1)
+                ax1 = sns.boxplot(x=eda_df[target], y=var, data=eda_df)
+                ax1.set_title('Box Plot', fontsize=17)
+                ax1.set_xlabel(f'Target Variable ({target})', fontsize=14)
+                ax1.set_ylabel(var, fontsize=14)
+
+                ax2 = plt.subplot(1, 2, 2)
+                ax2 = sns.distplot(eda_df[eda_df[target] == 1][var], hist=False, label='Target=1')
+                ax2 = sns.distplot(eda_df[eda_df[target] == 0][var], hist=False, label='Target=0')
+                ax2.set_title('KDE Plot', fontsize=17)
+                ax2.set_xlabel(var, fontsize=14)
                 plt.show()
+
             except:
                 print(f"Plots for variable : {var} can't be plotted")
 
@@ -303,7 +315,10 @@ def eda_numerical_plots_with_target(df, variables, target, model):
             try:
                 print (f'{i}. Plot for {var}')
                 plt.figure(figsize = (10, 4))
-                sns.regplot(data = eda_df, x = var, y=target)
+                ax = sns.regplot(data = eda_df, x = var, y=target)
+                ax.set_title(f'Scatter Plot bw variable ({var}) and target ({target})', fontsize=17)
+                ax.set_xlabel(var, fontsize=14)
+                ax.set_ylabel(target, fontsize=14)
                 plt.show()
             except:
                 print(f"Plots for variable : {var} can't be plotted")
@@ -311,10 +326,64 @@ def eda_numerical_plots_with_target(df, variables, target, model):
 
         
 
+def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
+    """
+    This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation
+    IQR is defined as quartile_3 - quartile_1
+    lower_bound = quartile_1 - tolerance_value * IQR
+    upper_bound = quartile_3 + tolerance_value * IQR
+    
+    Parameters:
+    -----------
+        df : dataset on which you are working on
+        variables: optional parameter. list of all the numeric variables. 
+                   if not provided then it automatically identifies the numeric variables and analyzes for them
+        tol : tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
+        
+    Returns:
+    --------
+        dataframe with variables that contain outliers
+    """
+    
+    outlier_dict = {}
+    
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns
+        if print_vars:
+            print(variables)
+        
+    else:
+        variables = variables
+        if print_vars:
+            print(variables)
+        
+    for var in variables:
+        s = df.loc[df[var].notnull(), var]
+        
+        quartile_1, quartile_3 = np.percentile(s, [25,75])
+        iqr = quartile_3 - quartile_1
+        lower_bound = quartile_1 - tol*iqr
+        upper_bound = quartile_3 + tol*iqr
+        
+        lower_bound_outlier = np.sum(s<lower_bound)
+        upper_bound_outlier = np.sum(s>upper_bound)
+        #if lower_bound_outlier >0 or upper_bound_outlier>0:
+        outlier_dict[var] = {'lower_bound_outliers': lower_bound_outlier, 
+                                 'upper_bound_outliers' : upper_bound_outlier,
+                                 'total_outliers' : lower_bound_outlier+upper_bound_outlier} 
+    
+    outlier_df = pd.DataFrame(data = outlier_dict).transpose()
+    outlier_df = outlier_df.sort_values(by='total_outliers' , ascending = False)
+    outlier_df['perc_outliers'] = (outlier_df['total_outliers'] / len(df)).mul(100)
+    
+    return outlier_df
+
 
 #### -------- Categorical Variables ------- #####
+#################################################
 
-def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=5):
+def categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=5):
     """
 
     Parameters:
@@ -335,7 +404,7 @@ def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, r
 
     for i, var in enumerate(variables, 1):
 
-        print (f'{i}. Plot for {var}')
+        printmd (f'**<u> {i}. Plot for {var}</u>**')
 
         if add_missing:
             eda_df[var] = eda_df[var].fillna('Missing')
@@ -354,26 +423,28 @@ def eda_categorical_plots(df, variables, add_missing = True, add_rare = False, r
 
         fig = plt.figure(figsize=(12,4))
         ax = plot_df.plot.bar(color = 'royalblue')
-        ax.set_xlabel(var)
-        ax.set_ylabel('Percentage')
+
+        ax.set_title(f'Distribution of variable {var}', fontsize=17)
+        #ax.set_xlabel(var, fontsize=14)
+        ax.set_ylabel('Percentage', fontsize=14)
         ax.axhline(y=rare_tol, color = 'red')
+        ax.axhline(y=rare_tol+5, color = 'darkred')
         plt.show()
 
 
-def  eda_categorical_plots_with_target(df, variables, target, add_missing = True, add_rare = False, rare_tol=5):
+def  categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol = 5):
     """
     Parameters:
     -----------
         df : Dataframe for which Analysis to be performed
         variables : input type list. All the categorical variables needed for plotting
         target : Target variable
+        model : type of problem - classification or regression
+                For classification related analysis. use 'classification' or 'clf'
+                For regression related analysis. use 'regression' or 'reg'
         add_missing : default True. if True it will replace missing values by 'Missing'
-        add_rare : default = False. 
-            :True: If True it will group all the smaller categories in a 'rare' category
-            :False: If True it will not group all the smaller categories in a 'rare' category
-            :both: it will show you categorical plots - as is and after grouping all smaller categories
-        rare_tol : Threshold limit (in percentage) to combine the rare occurrence categories, (rare_tol=5) i.e., less than 5% occurance categories will be grouped and forms a rare category 
-
+        rare_tol : {5 or 10}
+            percentage line to demonstrate categories with very less data
     Returns:
     --------
         Category plots for all the variables
@@ -383,43 +454,25 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
 
     for i, var in enumerate(variables, 1):
 
-        print (f'{i}. Plot for {var}')
+        printmd (f'**<u> {i}. Plot for {var}</u>**')
 
         if add_missing:
             eda_df[var] = eda_df[var].fillna('Missing')
         
-        s = pd.Series(eda_df[var].value_counts() / length_df)
-        s.sort_values(ascending = False, inplace = True)
-        
-        if add_rare==True:
-            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
-            eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
 
         plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+        cat_order = list(plot_df[var])
 
-        fig, ax = plt.subplots(figsize=(12,4))
-        plt.xticks(plot_df.index, plot_df[var], rotation = 90)
+        if model in('clf' or 'classification'):
+            plot_df[target] = 100*plot_df[target]
 
-        ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
+        
+        # Graph:1 to show the overall event rate across categories
+        if model in ('clf', 'classification'):
 
-        ax2 = ax.twinx()
-        ax2.plot(plot_df.index, plot_df[target], color = 'green')
-
-        ax.axhline(y=rare_tol, color = 'red')
-
-        ax.set_xlabel(var)
-        ax.set_ylabel('Percentage Distribution')
-        ax2.set_ylabel('Mean Target Value')
-        plt.show()
-        display_all(plot_df.set_index(var).transpose())
-        print()
-
-        if add_rare =='both':
-            print('Cateroical Plots after grouping into Rare Category')
-            non_rare_label = [ix for ix, perc in s.items() if perc>rare_tol/100]
-            eda_df[var] = np.where(eda_df[var].isin(non_rare_label), eda_df[var], 'Rare')
-
-            plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+            tmp = pd.crosstab(eda_df[var], eda_df[target], normalize='columns') * 100
+            tmp = tmp.reset_index()
+            tmp.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
 
             fig, ax = plt.subplots(figsize=(12,4))
             plt.xticks(plot_df.index, plot_df[var], rotation = 90)
@@ -427,19 +480,266 @@ def  eda_categorical_plots_with_target(df, variables, target, add_missing = True
             ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
 
             ax2 = ax.twinx()
-            ax2.plot(plot_df.index, plot_df[target], color = 'green')
+            ax2 = sns.pointplot(data = tmp, x=var, y='target_1', order = cat_order, color='black')
 
             ax.axhline(y=rare_tol, color = 'red')
+            ax.axhline(y=rare_tol+5, color = 'darkred')
 
-            ax.set_xlabel(var)
-            ax.set_ylabel('Percentage Distribution')
-            ax2.set_ylabel('Mean Target Value')
+            ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var})', fontsize=17)
+            #ax.set_xlabel(var, fontsize=14)
+            ax.set_ylabel('Perc of Categories', fontsize=14)
+            ax2.set_ylabel("Perc of Events across all Categories", fontsize=14)
+
             plt.show()
-            display_all(plot_df.set_index(var).transpose())
+
+
+        # Graph:2 to show the mean target value within each category
+        fig, ax = plt.subplots(figsize=(12,4))
+        plt.xticks(plot_df.index, plot_df[var], rotation = 90)
+
+        ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
+
+        ax2 = ax.twinx()
+        ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
+
+        ax.axhline(y=rare_tol, color = 'red')
+        ax.axhline(y=rare_tol+5, color = 'darkred')
+
+
+        if model in('clf' or 'classification'):
+            ax.set_title(f'Event Rate of target ({target}) within each category of variable ({var})', fontsize=17)
+            ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+            #ax.set_xlabel(var, fontsize=14)
+            ax.set_ylabel('Perc of Categories', fontsize=14)
+
+        elif model in('reg' or 'regression'):
+            ax.set_title(f'Mean value of target ({target}) within each category of variable ({var})', fontsize=17)
+            ax2.set_ylabel('Mean Target Value', fontsize=14) 
+            #ax.set_xlabel(var, fontsize=14)
+            ax.set_ylabel('Perc of Categories', fontsize=14)
+
+        plt.show()
+
+        display_all(plot_df.set_index(var).transpose())
+
+        
+
+
+def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf', add_missing = True, rare_v1=5, rare_v2=10):
+    """
+    Useful for deciding what percentage of rare encoding would be useful
+    Parameters:
+    -----------
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the categorical variables needed for plotting
+        target : Target variable
+        model : type of problem - classification or regression
+                For classification related analysis. use 'classification' or 'clf'
+                For regression related analysis. use 'regression' or 'reg'
+        add_missing : default True. if True it will replace missing values by 'Missing'
+        rare_v1 : Input percentage as number ex 5, 10 etc (default : 5) combines categories less than that and show distribution
+        rare_v2 : Input percentage as number ex 5, 10 etc (default : 10) combines categories less than that and show distribution
+       
+    Returns:
+    --------
+        Category plots for all the variables
+    """
+    eda_df = df.copy(deep=True)
+    length_df = len(eda_df)
+
+
+    for i, var in enumerate(variables, 1):
+
+        print (f'{i}. Plot for {var}')
+
+        if add_missing:
+            eda_df[var] = eda_df[var].fillna('Missing')
+
+        
+        # 1st plot for categories as in in the dataset        
+
+        plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+        cat_order = list(plot_df[var])
+
+        if model in('clf' or 'classification'):
+            plot_df[target] = 100*plot_df[target]
+
+
+        fig, ax = plt.subplots(figsize=(12,4))
+        plt.xticks(plot_df.index, plot_df[var], rotation = 90)
+
+        ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
+
+        ax2 = ax.twinx()
+        ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
+
+        ax.set_title(f'As Is Distribution of {var}', fontsize=17)
+        #ax.set_xlabel(var, fontsize=14)
+        ax.set_ylabel('Perc of Categories', fontsize=14)
+
+        ax.axhline(y=rare_v1, color = 'red')
+        ax.axhline(y=rare_v2, color = 'darkred')
+
+        if model in('clf' or 'classification'):
+            ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+
+        elif model in('reg' or 'regression'):
+            ax2.set_ylabel('Mean Target Value', fontsize=14) 
+
+        plt.show()
+        display_all(plot_df.set_index(var).transpose())
+        print()
+
+        # 2nd plot after combining categories less than 5%    
+        if rare_v1:
+            rare_v1_df = eda_df.copy()[[var, target]]
+            s_v1 = pd.Series(rare_v1_df[var].value_counts() / length_df)
+            s_v1.sort_values(ascending = False, inplace = True)
+            non_rare_label = [ix for ix, perc in s_v1.items() if perc>rare_v1/100]
+            rare_v1_df[var] = np.where(rare_v1_df[var].isin(non_rare_label), rare_v1_df[var], 'Rare')
+
+            plot_df_v1 =  calculate_mean_target_per_category (rare_v1_df, var, target)
+            cat_order = list(plot_df_v1[var])
+
+            if model in('clf' or 'classification'):
+                plot_df_v1[target] = 100*plot_df_v1[target]
+
+            fig, ax = plt.subplots(figsize=(12,4))
+            plt.xticks(plot_df_v1.index, plot_df_v1[var], rotation = 90)
+
+            ax.bar(plot_df_v1.index, plot_df_v1['perc'], align = 'center', color = 'lightgrey')
+
+            ax2 = ax.twinx()
+            ax2 = sns.pointplot(data = plot_df_v1, x=var, y=target, order = cat_order, color='green')
+
+            ax.set_title(f'Distribution of {var} after combining categories less than {rare_v1}%', fontsize=17)
+            #ax.set_xlabel(var, fontsize=14)
+            ax.set_ylabel('Perc of Categories', fontsize=14)
+
+            ax.axhline(y=rare_v1, color = 'red')
+            ax.axhline(y=rare_v2, color = 'darkred')
+
+            if model in('clf' or 'classification'):
+                ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+
+            elif model in('reg' or 'regression'):
+                ax2.set_ylabel('Mean Target Value', fontsize=14) 
+
+            plt.show()
+            display_all(plot_df_v1.set_index(var).transpose())
             print()
 
 
-def eda_categorical_variable(df, variable, model = None, target=None,  rare_tol=5):
+        # 3rd plot after combining categories less than 10%  
+        if rare_v2:
+            rare_v2_df = eda_df.copy()[[var, target]]
+            s_v2 = pd.Series(rare_v2_df[var].value_counts() / length_df)
+            s_v2.sort_values(ascending = False, inplace = True)
+            non_rare_label = [ix for ix, perc in s_v2.items() if perc>rare_v2/100]
+            rare_v2_df[var] = np.where(rare_v2_df[var].isin(non_rare_label), rare_v2_df[var], 'Rare')
+
+            plot_df_v2 =  calculate_mean_target_per_category (rare_v2_df, var, target)
+            cat_order = list(plot_df_v2[var])
+
+            if model in('clf' or 'classification'):
+                plot_df_v2[target] = 100*plot_df_v2[target]
+
+            fig, ax = plt.subplots(figsize=(12,4))
+            plt.xticks(plot_df_v2.index, plot_df_v2[var], rotation = 90)
+
+            ax.bar(plot_df_v2.index, plot_df_v2['perc'], align = 'center', color = 'lightgrey')
+
+            ax2 = ax.twinx()
+            ax2 = sns.pointplot(data = plot_df_v2, x=var, y=target, order = cat_order, color='green')
+
+            ax.set_title(f'Distribution of {var} after combining categories less than {rare_v2}%', fontsize=17)
+            #ax.set_xlabel(var, fontsize=14)
+            ax.set_ylabel('Perc of Categories', fontsize=14)
+
+            ax.axhline(y=rare_v1, color = 'red')
+            ax.axhline(y=rare_v2, color = 'darkred')
+
+            if model in('clf' or 'classification'):
+                ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+
+            elif model in('reg' or 'regression'):
+                ax2.set_ylabel('Mean Target Value', fontsize=14) 
+
+            plt.show()
+            display_all(plot_df_v2.set_index(var).transpose())
+
+
+
+def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
+    """
+    Useful ONLY for Regression Model
+    Plots the KDE to check whether frequent category imputation will be suitable
+
+    Parameters:
+    -----------
+        df : Dataframe for which Analysis to be performed
+        variables : input type list. All the categorical variables needed for plotting
+        target : Target variable
+        model : type of problem - classification or regression
+                For classification related analysis. use 'classification' or 'clf'
+                For regression related analysis. use 'regression' or 'reg'
+        
+    Returns:
+    --------
+        Missing Values for  variable
+        Frequent Category for variable
+        KDE plot between missing values and frequent category
+        
+    """
+    miss_df = df.copy()
+
+    if model in ('reg' , 'regression'):
+        for i, var in enumerate(variables, 1):
+
+            print (f'{i}. Plot for {var}')
+
+            print ('Missing Values:')
+            n_miss = miss_df[var].isnull().sum()
+            n_miss_perc = miss_df[var].isnull().mean()*100
+            print ('  Number :', n_miss)
+            print ('  Percentage : {:1.2f}%'.format(n_miss_perc))
+            
+            if n_miss>10:
+                fig = plt.figure(figsize = (12,4))
+                ax = fig.add_subplot(111)
+
+                value = miss_df[var].mode()
+                # Careful : because some variable can have multiple modes
+                if len(value) ==1:
+                    print ('\n\nMost Frequent Category: ', value[0])
+                    value = value[0]
+                else:
+                    raise ValueError(f'Variable {var} contains multiple frequent categories :', value)
+
+                
+
+                # Frequent Category
+                miss_df[miss_df[var] == value][target].plot(kind = 'kde', ax = ax, color = 'blue')
+
+                # NA Value
+                miss_df[miss_df[var].isnull()][target].plot(kind = 'kde', ax = ax, color = 'red')
+
+                # Add the legend
+                labels = ['Most Frequent category', 'with NA']
+                ax.legend(labels, loc = 'best')
+                ax.set_title('KDE Plot for Frequent Category & Missing Values', fontsize=17)
+                ax.set_xlabel('Distribution' , fontsize=14)
+                ax.set_ylabel('Density', fontsize=14)
+                plt.show()
+            else:
+                print ('Not plotting the KDE plot because number of missing values is less than 10')
+                print()
+
+    else:
+        print ('ONLY suitable for Regression Models')
+
+
+def categorical_variable_detail(df, variable, model = None, target=None,  rare_tol=5):
     """
     This function provides EDA for Categorical variable, this includes 
         - Counts

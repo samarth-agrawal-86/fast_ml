@@ -32,9 +32,9 @@
     * Bi-variate plots - Scatter plot of all the numerical variables provided as input with target.
 
 ### 1.3) Categorical Variables
-1. eda.categorical_variable_detail(df, variable, model = None, target=None,  rare_tol=5)
+1. **eda.categorical_variable_detail**(*df, variable, model = None, target=None,  rare_tol=5*)
     * Various summary statistics, missing values, distributions ... a detailed analysis for a single variable provided as input
-2. eda.categorical_plots(df, variables, add_missing = True, add_rare = False, rare_tol=5)
+2. **eda.categorical_plots**(*df, variables, add_missing = True, add_rare = False, rare_tol=5*)
     * Uni-variate plots - distribution of all the categorical provided as input
 3. eda.categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol = 5)
     * Bi-variate plots - distribution of all the categorical provided as input with target

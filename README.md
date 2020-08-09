@@ -30,6 +30,7 @@
     * Uni-variate plots - Variable Distribution of all the numerical variables provided as input with target. Can also get the Q-Q plot for assessing the normality
 3. **eda.numerical_plots_with_target**(*df, variables, target, model*)
     * Bi-variate plots - Scatter plot of all the numerical variables provided as input with target.
+4. **eda.numerical_check_outliers**(*df, variables=None, tol=1.5, print_vars = False*)
 
 ### 1.3) Categorical Variables
 1. **eda.categorical_variable_detail**(*df, variable, model = None, target=None,  rare_tol=5*)
@@ -75,10 +76,13 @@
 ## 4. Outlier Treatment
 
 `from fast_ml.outlier_treatment import check_outliers, OutlierTreatment`
-
-### 4.1) check_outliers(df, variables=None, tol=1.5, print_vars = False) 
-### 4.2) Class OutlierTreatment 
-
+### 4.1) Class OutlierTreatment 
+* Methods:
+  - 'iqr' or 'IQR'
+  - 'gaussian'
+1. fit(df, variables)
+2. transform(df)
+  
 ## 5. Feature Engineering
 
 `from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime`
@@ -102,3 +106,7 @@
 
 
 ## 6. Model Evaluation
+1. model_save (model, model_name)
+2. model_load (model_name)
+3. plot_confidence_interval_for_data (model, X)
+4. plot_confidence_interval_for_variable (model, X, y, variable)

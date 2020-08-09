@@ -47,21 +47,30 @@
 
 `from fast_ml.missing_data_analysis import MissingDataAnalysis`
 ### 2.1) MissingDataAnalysis Class
-1. calculate_missing_values()
-2. explore_numerical_imputation (variable)
-3. explore_categorical_imputation (variable)
+1. explore_numerical_imputation (variable)
+2. explore_categorical_imputation (variable)
 
 
 ## 3. Missing Data Imputation
 
 `from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical`
 ### 3.1) Class MissingDataImputer_Numerical 
-* fit(df, variables)
-* transform(df)
+* Methods:
+  - 'mean'
+  - 'meadian'
+  - 'mode'
+  - 'custom_value'
+  - 'random'
+1. fit(df, variables)
+2. transform(df)
 
 ### 3.2) Class MissingDataImputer_Categorical
-* fit(df, variables)
-* transform(df)
+* Methods:
+  - 'frequent' or 'mode'
+  - 'custom_value'
+  - 'random'
+1. fit(df, variables)
+2. transform(df)
 
 ## 4. Outlier Treatment
 

@@ -1,6 +1,6 @@
 # Package Description
 
-## Fast-ML is a Python package with numerous inbuilt functionalities to make the life of data scientist much easier
+## Fast-ML is a Python package with numerous inbuilt functionalities to make the life of a data scientist much easier
 fast_ml follow Scikit-learn type functionality with fit() and transform() methods to first learn the transforming parameters from training dataset and then transforms the training/validation/test dataset
 
 ## Glossary
@@ -136,7 +136,7 @@ pip install fast_ml
 
 ### Usage
 ```python
-from fast_ml.fast_ml.feature_engineering import FeatureEngineering_Categorical
+from fast_ml.feature_engineering import FeatureEngineering_Categorical
 import pandas as pd
 
 df = pd.read_csv('train.csv')

@@ -47,7 +47,7 @@
 ## 2. Missing Data Analysis
 
 `from fast_ml.missing_data_analysis import MissingDataAnalysis`
-### 2.1) MissingDataAnalysis Class
+### 2.1) Class MissingDataAnalysis 
 1. explore_numerical_imputation (variable)
 2. explore_categorical_imputation (variable)
 

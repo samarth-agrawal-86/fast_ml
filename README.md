@@ -10,9 +10,9 @@
 ## 0. Utilities
 
 `from fast_ml.utilities import *`
-1. reduce_memory_usage(df, convert_to_category = False)
+1. **reduce_memory_usage**(df, convert_to_category = False)
     * This function reduces the memory used by dataframe
-2. display_all(df)
+2. **display_all**(df)
     * Use this function to show all rows and all columns of dataframe. By default pandas only show top and bottom 20 rows, columns
 
 ## 1. Exploratory Data Analysis (EDA)
@@ -20,15 +20,15 @@
 `from fast_ml import eda`
 
 ### 1.1) Overview
-1. eda.df_summary(df)
+1. **eda.df_summary**(df)
     * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent
 
 ### 1.2) Numerical Variables
-1. eda.numerical_variable_detail(df, variable, model = None, target=None, threshold = 20)
+1. **eda.numerical_variable_detail**(*df, variable, model = None, target=None, threshold = 20*)
     * Various summary statistics, spread statistics, outlier, missing values, transformation diagnostic... a detailed analysis for a single variable provided as input
-2. eda.numerical_plots(df, variables, normality_check = False)
+2. **eda.numerical_plots**(*df, variables, normality_check = False*)
     * Uni-variate plots - Variable Distribution of all the numerical variables provided as input with target. Can also get the Q-Q plot for assessing the normality
-3. eda.numerical_plots_with_target(df, variables, target, model)
+3. **eda.numerical_plots_with_target**(*df, variables, target, model*)
     * Bi-variate plots - Scatter plot of all the numerical variables provided as input with target.
 
 ### 1.3) Categorical Variables
@@ -36,11 +36,11 @@
     * Various summary statistics, missing values, distributions ... a detailed analysis for a single variable provided as input
 2. **eda.categorical_plots**(*df, variables, add_missing = True, add_rare = False, rare_tol=5*)
     * Uni-variate plots - distribution of all the categorical provided as input
-3. eda.categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol = 5)
+3. **eda.categorical_plots_with_target**(*df, variables, target, model='clf', add_missing = True,  rare_tol = 5*)
     * Bi-variate plots - distribution of all the categorical provided as input with target
-4. eda.categorical_plots_with_rare_and_target(df, variables, target, model = 'clf', add_missing = True, rare_v1=5, rare_v2=10)
+4. **eda.categorical_plots_with_rare_and_target**(*df, variables, target, model = 'clf', add_missing = True, rare_v1=5, rare_v2=10*)
     * Bi-variate plots - distribution of all the categorical provided as input with target with 2 inputs as rare threshold. Useful for deciding the rare bucketing
-5. eda.categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg')
+5. **eda.categorical_plots_for_miss_and_freq**(*df, variables, target, model = 'reg'*)
     * Uni-variate plots - distribution of all the categorical provided as input with target with 2 inputs as rare threshold. Useful for deciding the rare bucketing
 
 ## 2. Missing Data Analysis

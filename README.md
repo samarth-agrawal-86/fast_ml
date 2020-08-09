@@ -1,4 +1,9 @@
-# fast_ml
+# Package Description
+
+## Fast ML
+fast_ml is a Python package with various functionalities inbuilt to make the life of data scientist much easier. <br>
+fast_ml follow Scikit-learn type functionality with fit() and transform() methods to first learn the transforming parameters from training dataset and then transforms the training/validation/test dataset
+
 ## Glossary
 > * df : refers to dataframe
 > * variable : single variable needs to be passed Ex 'V1'
@@ -9,8 +14,8 @@
 
 ## 0. Utilities
 
-```
-from fast_ml.utilities import *
+```python
+from fast_ml.utilities import reduce_memory_usage, display_all
 ```
 1. **reduce_memory_usage**(*df, convert_to_category = False*)
     * This function reduces the memory used by dataframe
@@ -19,7 +24,9 @@ from fast_ml.utilities import *
 
 ## 1. Exploratory Data Analysis (EDA)
 
-`from fast_ml import eda`
+```python
+from fast_ml import eda
+```
 
 ### 1.1) Overview
 1. **eda.df_summary**(*df*)
@@ -48,7 +55,9 @@ from fast_ml.utilities import *
 
 ## 2. Missing Data Analysis
 
-`from fast_ml.missing_data_analysis import MissingDataAnalysis`
+```python
+from fast_ml.missing_data_analysis import MissingDataAnalysis
+```
 ### 2.1) Class MissingDataAnalysis 
 1. explore_numerical_imputation (variable)
 2. explore_categorical_imputation (variable)
@@ -56,7 +65,9 @@ from fast_ml.utilities import *
 
 ## 3. Missing Data Imputation
 
-`from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical`
+```python
+from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical
+```
 ### 3.1) Class MissingDataImputer_Numerical 
 * Methods:
   - 'mean'
@@ -77,7 +88,9 @@ from fast_ml.utilities import *
 
 ## 4. Outlier Treatment
 
-`from fast_ml.outlier_treatment import check_outliers, OutlierTreatment`
+```python
+from fast_ml.outlier_treatment import check_outliers, OutlierTreatment
+```
 ### 4.1) Class OutlierTreatment 
 * Methods:
   - 'iqr' or 'IQR'
@@ -87,7 +100,9 @@ from fast_ml.utilities import *
   
 ## 5. Feature Engineering
 
-`from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime`
+```python
+from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime
+```
 ### 5.1) Class FeatureEngineering_Numerical 
 * TBD
 
@@ -112,3 +127,19 @@ from fast_ml.utilities import *
 2. model_load (model_name)
 3. plot_confidence_interval_for_data (model, X)
 4. plot_confidence_interval_for_variable (model, X, y, variable)
+
+
+---
+### Installing
+```python
+pip install fast_ml
+```
+
+### Usage
+```python
+from fast_ml.from fast_ml.feature_engineering import FeatureEngineering_Categorical
+import pandas as pd
+
+df = pd.read_csv('train.csv')
+
+```

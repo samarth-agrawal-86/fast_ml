@@ -54,15 +54,15 @@
 
 ### 4.2) FeatureEngineering_Categorical Class
 * Methods:
- - 'rare-encoding' or 'rare'
- - 'label' or 'integer'
- - 'count'
- - 'freq'
- - 'ordered_label'
- - 'target_ordered'
- - 'target_mean'
- - 'target_prob_ratio'
- - 'target_woe'
-
+  - 'rare-encoding' or 'rare'
+  - 'label' or 'integer'
+  - 'count'
+  - 'freq'
+  - 'ordered_label'
+  - 'target_ordered'
+  - 'target_mean'
+  - 'target_prob_ratio'
+  - 'target_woe'
+ 
 ### 4.3) FeatureEngineering_DateTime
 * FeatureEngineering_DateTime (df, datetime_var, prefix, drop_orig=True)

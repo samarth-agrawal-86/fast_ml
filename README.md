@@ -3,8 +3,8 @@ fast_ml follow Scikit-learn type functionality with fit() and transform() method
 
 ## Glossary
 > * df : refers to dataframe
-> * variable : single variable needs to be passed Ex 'V1'
-> * variables : variables need to be passed as list. Even if it is single variable it has to be passed in list format. ex. ['V1', 'V2] or ['V1']
+> * variable : refers to a single variable. As required in the function it has to be passed ex 'V1'
+> * variables : (list type) refers to group of variables need to be passed as list. Even if it is single variable it has to be passed in list format. ex. ['V1', 'V2] or ['V1']
 > * target : refers to target variable 
 > * model : ML problem type. use 'classification' or 'clf' for classification problems and 'regression' or 'reg' for regression problems
 > * method : refers to various techniques available for Missing Value Imputation, Feature Engieering... as available in each module

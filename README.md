@@ -41,6 +41,14 @@ from fast_ml import eda
 4. **eda.numerical_check_outliers**(*df, variables=None, tol=1.5, print_vars = False*)
 
 ### 1.3) Categorical Variables
+```python
+from fast_ml import eda
+
+df = pd.read_csv('train.csv')
+
+#one line of command to get the plots
+eda.c
+```
 1. **eda.categorical_variable_detail**(*df, variable, model = None, target=None,  rare_tol=5*)
     * Various summary statistics, missing values, distributions ... a detailed analysis for a single variable provided as input
 2. **eda.categorical_plots**(*df, variables, add_missing = True, add_rare = False, rare_tol=5*)
@@ -68,6 +76,16 @@ from fast_ml.missing_data_analysis import MissingDataAnalysis
 from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical
 ```
 ### 3.1) Class MissingDataImputer_Numerical 
+```python
+from fast_ml.missing_data_imputation import MissingDataImputer_Numerical
+
+train = pd.read_csv('train.csv')
+
+num_imputer = MissingDataImputer_Categorical(df, method = 'median')
+num_imputer.fit(train)
+train = num_imputer.transform(train)
+test = num_imputer.transform(test)
+```
 * Methods:
   - 'mean'
   - 'meadian'
@@ -75,39 +93,56 @@ from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, Missin
   - 'custom_value'
   - 'random'
 1. fit(df, variables)
-2. transform(df)
+2. **transform**(*df*)
 
 ### 3.2) Class MissingDataImputer_Categorical
+```python
+from fast_ml.missing_data_imputation import MissingDataImputer_Categorical
+
+train = pd.read_csv('train.csv')
+
+cat_imputer = MissingDataImputer_Categorical(df, method = 'frequent')
+cat_imputer.fit(train)
+train = cat_imputer.transform(train)
+test = cat_imputer.transform(test)
+```
 * Methods:
   - 'frequent' or 'mode'
   - 'custom_value'
   - 'random'
 1. fit(df, variables)
-2. transform(df)
+2. **transform**(*df*)
 
 ## 4. Outlier Treatment
 
 ```python
-from fast_ml.outlier_treatment import check_outliers, OutlierTreatment
+from fast_ml.outlier_treatment import OutlierTreatment
 ```
 ### 4.1) Class OutlierTreatment 
 * Methods:
   - 'iqr' or 'IQR'
   - 'gaussian'
-1. fit(df, variables)
-2. transform(df)
+1. **fit**(*df, variables*)
+2. **transform**(*df*)
   
 ## 5. Feature Engineering
-
 ```python
 from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEngineering_Categorical, FeatureEngineering_DateTime
 ```
 ### 5.1) Class FeatureEngineering_Numerical 
 * TBD
 
-### 5.2) Class FeatureEngineering_Categorical
+### 5.2) Class FeatureEngineering_Categorical(*model=None, method='label', drop_last=False*):
+```python
+from fast_ml.feature_engineering import FeatureEngineering_Categorical
+
+rare_encoder_5 = FeatureEngineering_Categorical(method = 'rare')
+rare_encoder_5.fit(train, rare_tol=5)
+train = rare_encoder_5.transform(train)
+test = rare_encoder_5.transform(test)
+```
 * Methods:
-  - 'rare-encoding' or 'rare'
+  - 'rare_encoding' or 'rare'
   - 'label' or 'integer'
   - 'count'
   - 'freq'
@@ -116,6 +151,8 @@ from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEng
   - 'target_mean'
   - 'target_prob_ratio'
   - 'target_woe'
+1. **fit**(*df, variables, target=None, rare_tol=5*)
+2. **transform**(*df*)
  
 ### 5.3) FeatureEngineering_DateTime
 * FeatureEngineering_DateTime (df, datetime_var, prefix, drop_orig=True)

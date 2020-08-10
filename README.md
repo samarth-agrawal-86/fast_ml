@@ -83,7 +83,7 @@ from fast_ml.missing_data_imputation import MissingDataImputer_Numerical
 train = pd.read_csv('train.csv')
 
 num_imputer = MissingDataImputer_Numerical(df, method = 'median')
-num_imputer.fit(train)
+num_imputer.fit(train, num_vars)
 train = num_imputer.transform(train)
 test = num_imputer.transform(test)
 ```
@@ -103,7 +103,7 @@ from fast_ml.missing_data_imputation import MissingDataImputer_Categorical
 train = pd.read_csv('train.csv')
 
 cat_imputer = MissingDataImputer_Categorical(df, method = 'frequent')
-cat_imputer.fit(train)
+cat_imputer.fit(train, cat_vars)
 train = cat_imputer.transform(train)
 test = cat_imputer.transform(test)
 ```
@@ -138,7 +138,7 @@ from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEng
 from fast_ml.feature_engineering import FeatureEngineering_Categorical
 
 rare_encoder_5 = FeatureEngineering_Categorical(method = 'rare')
-rare_encoder_5.fit(train, rare_tol=5)
+rare_encoder_5.fit(train, cat_vars, rare_tol=5)
 train = rare_encoder_5.transform(train)
 test = rare_encoder_5.transform(test)
 ```

@@ -76,23 +76,24 @@ from fast_ml.missing_data_analysis import MissingDataAnalysis
 from fast_ml.missing_data_imputation import MissingDataImputer_Numerical, MissingDataImputer_Categorical
 ```
 ### 3.1) Class MissingDataImputer_Numerical 
+
 ```python
 from fast_ml.missing_data_imputation import MissingDataImputer_Numerical
 
 train = pd.read_csv('train.csv')
 
-num_imputer = MissingDataImputer_Categorical(df, method = 'median')
+num_imputer = MissingDataImputer_Numerical(df, method = 'median')
 num_imputer.fit(train)
 train = num_imputer.transform(train)
 test = num_imputer.transform(test)
 ```
 * Methods:
   - 'mean'
-  - 'meadian'
+  - 'median'
   - 'mode'
   - 'custom_value'
   - 'random'
-1. fit(df, variables)
+1. **fit**(*df, num_vars*)
 2. **transform**(*df*)
 
 ### 3.2) Class MissingDataImputer_Categorical
@@ -110,7 +111,7 @@ test = cat_imputer.transform(test)
   - 'frequent' or 'mode'
   - 'custom_value'
   - 'random'
-1. fit(df, variables)
+1. **fit**(*df, cat_vars*)
 2. **transform**(*df*)
 
 ## 4. Outlier Treatment
@@ -122,7 +123,7 @@ from fast_ml.outlier_treatment import OutlierTreatment
 * Methods:
   - 'iqr' or 'IQR'
   - 'gaussian'
-1. **fit**(*df, variables*)
+1. **fit**(*df, num_vars*)
 2. **transform**(*df*)
   
 ## 5. Feature Engineering
@@ -151,7 +152,7 @@ test = rare_encoder_5.transform(test)
   - 'target_mean'
   - 'target_prob_ratio'
   - 'target_woe'
-1. **fit**(*df, variables, target=None, rare_tol=5*)
+1. **fit**(*df, cat_vars, target=None, rare_tol=5*)
 2. **transform**(*df*)
  
 ### 5.3) FeatureEngineering_DateTime

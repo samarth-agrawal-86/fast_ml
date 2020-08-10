@@ -47,7 +47,7 @@ from fast_ml import eda
 df = pd.read_csv('train.csv')
 
 #one line of command to get the plots
-eda.c
+eda.categorical_plots_with_target(train, cat_vars, target, add_missing=True, rare_tol=5)
 ```
 1. **eda.categorical_variable_detail**(*df, variable, model = None, target=None,  rare_tol=5*)
     * Various summary statistics, missing values, distributions ... a detailed analysis for a single variable provided as input

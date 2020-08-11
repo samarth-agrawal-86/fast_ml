@@ -11,7 +11,7 @@ desc = "Package by the Data-Scientists for the Data Scientists ; with Scikit-lea
 
 setup(
 		name = 'fast_ml',
-		version = 2.91,
+		version = 2.92,
 		description = desc,
 		long_description = long_description,
 		long_description_content_type = "text/markdown",	

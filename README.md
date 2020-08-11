@@ -7,14 +7,14 @@ pip install fast_ml
 ```
 
 ## Table of Contents:
-#### 0. Utilities
-#### 1. Exploratory Data Analysis (EDA)
-#### 2. Missing Data Analysis
-#### 3. Missing Data Imputation
-#### 4. Outlier Treatment
-#### 5. Feature Engineering
-#### 6. Model Evaluation
-#### 7. Feature Selection
+0. **Utilities**
+1. **Exploratory Data Analysis (EDA)**
+2. **Missing Data Analysis**
+3. **Missing Data Imputation**
+4. **Outlier Treatment**
+5. **Feature Engineering**
+6. **Model Evaluation**
+7. **Feature Selection**
 
 
 ## Glossary

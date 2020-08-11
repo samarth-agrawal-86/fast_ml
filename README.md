@@ -13,6 +13,9 @@ fast_ml follow Scikit-learn type functionality with fit() and transform() method
 
 ```python
 from fast_ml.utilities import reduce_memory_usage, display_all
+
+# reduces the memory usage of the dataset by optimizing for the datatype used for storing the data
+train = reduce_memory_usage(train, convert_to_category=False)
 ```
 1. **reduce_memory_usage**(*df, convert_to_category = False*)
     * This function reduces the memory used by dataframe
@@ -26,10 +29,27 @@ from fast_ml import eda
 ```
 
 ### 1.1) Overview
+```python
+from fast_ml import eda
+
+train = pd.read_csv('train.csv')
+
+# One of the most useful dataframe summary view
+summary_df = eda.df_summary(train)
+display_all(summary_df)
+```
 1. **eda.df_summary**(*df*)
     * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent
 
 ### 1.2) Numerical Variables
+```python
+from fast_ml import eda
+
+train = pd.read_csv('train.csv')
+
+#one line of command to get commonly used plots for all the variables provided to the function
+eda.numerical_plots_with_target(train, num_vars, target, model ='clf')
+```
 1. **eda.numerical_variable_detail**(*df, variable, model = None, target=None, threshold = 20*)
     * Various summary statistics, spread statistics, outlier, missing values, transformation diagnostic... a detailed analysis for a single variable provided as input
 2. **eda.numerical_plots**(*df, variables, normality_check = False*)
@@ -42,9 +62,9 @@ from fast_ml import eda
 ```python
 from fast_ml import eda
 
-df = pd.read_csv('train.csv')
+train = pd.read_csv('train.csv')
 
-#one line of command to get the plots
+#one line of command to get commonly used plots for all the variables provided to the function
 eda.categorical_plots_with_target(train, cat_vars, target, add_missing=True, rare_tol=5)
 ```
 1. **eda.categorical_variable_detail**(*df, variable, model = None, target=None,  rare_tol=5*)
@@ -81,6 +101,8 @@ from fast_ml.missing_data_imputation import MissingDataImputer_Numerical
 train = pd.read_csv('train.csv')
 
 num_imputer = MissingDataImputer_Numerical(df, method = 'median')
+
+#Scikit-learn type fit() transform() functionality
 num_imputer.fit(train, num_vars)
 train = num_imputer.transform(train)
 test = num_imputer.transform(test)
@@ -101,6 +123,8 @@ from fast_ml.missing_data_imputation import MissingDataImputer_Categorical
 train = pd.read_csv('train.csv')
 
 cat_imputer = MissingDataImputer_Categorical(df, method = 'frequent')
+
+#Scikit-learn type fit() transform() functionality
 cat_imputer.fit(train, cat_vars)
 train = cat_imputer.transform(train)
 test = cat_imputer.transform(test)
@@ -136,6 +160,8 @@ from fast_ml.feature_engineering import FeatureEngineering_Numerical, FeatureEng
 from fast_ml.feature_engineering import FeatureEngineering_Categorical
 
 rare_encoder_5 = FeatureEngineering_Categorical(method = 'rare')
+
+#Scikit-learn type fit() transform() functionality
 rare_encoder_5.fit(train, cat_vars, rare_tol=5)
 train = rare_encoder_5.transform(train)
 test = rare_encoder_5.transform(test)
@@ -175,6 +201,6 @@ pip install fast_ml
 from fast_ml.feature_engineering import FeatureEngineering_Categorical
 import pandas as pd
 
-df = pd.read_csv('train.csv')
+train = pd.read_csv('train.csv')
 
 ```

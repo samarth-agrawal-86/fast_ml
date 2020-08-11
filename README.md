@@ -1,6 +1,22 @@
 ## Fast-ML is a Python package with numerous inbuilt functionalities to make the life of a data scientist much easier
 fast_ml follow Scikit-learn type functionality with fit() and transform() methods to first learn the transforming parameters from training dataset and then transforms the training/validation/test dataset
 
+### Installing
+```python
+pip install fast_ml
+```
+
+## Table of Contents:
+#### 0. Utilities
+#### 1. Exploratory Data Analysis (EDA)
+#### 2. Missing Data Analysis
+#### 3. Missing Data Imputation
+#### 4. Outlier Treatment
+#### 5. Feature Engineering
+#### 6. Model Evaluation
+#### 7. Feature Selection
+
+
 ## Glossary
 > * df : refers to dataframe
 > * variable : refers to a single variable. As required in the function it has to be passed ex 'V1'
@@ -191,16 +207,4 @@ test = rare_encoder_5.transform(test)
 
 
 ---
-### Installing
-```python
-pip install fast_ml
-```
 
-### Usage
-```python
-from fast_ml.feature_engineering import FeatureEngineering_Categorical
-import pandas as pd
-
-train = pd.read_csv('train.csv')
-
-```

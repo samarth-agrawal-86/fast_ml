@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import Markdown, display
 from fast_ml.utilities import printmd , display_all, normality_diagnostic , plot_categories , \
-plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories
+plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories, \
+get_plot_df, plot_categories_overall_eventrate, plot_categories_within_eventrate
 
 
 def df_summary(df):
@@ -43,6 +44,39 @@ def df_summary(df):
    
 #### -------- Numerical Variables ------- #####
 ###############################################
+
+def numerical_describe(df, variables=None, method='10p'):
+    '''
+    Parameters:
+    -----------
+        df : dataframe
+        variables : list type, optional
+            if nothing is passed then function will search for all the numerical type variables
+        method : str, default '10p'
+            '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+            '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+            
+    Returns:
+    --------
+        df : Dataframe
+            Various statistics about the input dataset will be returned
+    '''
+    if method == '5p':
+        buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+    elif method == '10p':
+        buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+    
+    if variables == None:
+        variables = df.select_dtypes(exclude = ['object']).columns
+        # Check for datetime variable. exclude = 'datetime', 'datetime64'
+        # variables = df.select_dtypes(include = ['int', 'float']).columns
+    else:
+        variables = variables
+    
+    spread_stats = df[variables].describe(percentiles = np.array(buckets)/100).T
+    spread_stats.drop(columns = ['min', 'max'], inplace=True)
+    return spread_stats
+    
 def numerical_variable_detail(df, variable, model = None, target=None, threshold = 20):
     """
     This provides basic EDA of the Numerical variable passed,
@@ -380,6 +414,91 @@ def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
     return outlier_df
 
 
+def numerical_bins_with_target (df, variables, target, model='clf', create_buckets = True, method='5p', custom_buckets=None):
+    """
+    Plot the bins for numerical variables
+
+    Various default methods can be used for binning. Or custom bucket can be provided
+
+
+    Parameters:
+    -----------
+        df : dataframe
+        variables : list type
+        target : string
+        model : string, default 'clf'
+            'classification' or 'clf' for classification related analysis 
+            'regression' or 'reg' for regression related analysis
+        create_buckets : bool, default True
+        method : string, default '5p'
+            '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+            '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            '20p' : [0, 20, 40, 60, 80, 100]
+            '25p' : [0, 25, 50, 75, 100]
+            '95p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+            '98p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+            'custom' : Custom list
+        custom_buckets : list type, default None
+            Has to be provided compulsorily if 'custom' method is used 
+
+    """
+
+    if create_buckets:
+
+        if method == '5p':
+            buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+        elif method == '10p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        elif method == '20p':
+            buckets = [0, 20, 40, 60, 80, 100]
+        elif method == '25p':
+            buckets = [0, 25, 50, 75, 100]
+        elif method == '95p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        elif method == '98p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+        elif method == 'custom':
+            buckets = custom_buckets
+
+    
+    eda_df = df.copy()
+    
+    if model in('clf', 'classification'):
+        for i, var in enumerate(variables, 1):
+
+            printmd (f'**<u> {i}. Plot for {var}</u>**')
+
+            if create_buckets:
+                s = eda_df[var].dropna()
+                
+                spread_stats = s.describe(percentiles = np.array(buckets)/100).to_frame().T
+                spread_stats.drop(columns = ['min', 'max'], inplace=True)
+                printmd(f'**Spread Statistics for {var} :')
+                display_all(spread_stats)
+
+                bins = sorted(set(list(np.percentile(s, buckets))))
+                eda_df[var] = pd.cut(s, bins = bins, include_lowest=True)
+                eda_df[var] = eda_df[var].astype('object')
+                eda_df[var].fillna('Missing', inplace = True)
+
+            plot_df = pd.crosstab(eda_df[var], eda_df[target])
+            cat_order = (plot_df.index)
+            plot_df = plot_df.reset_index()
+            plot_df.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
+            plot_df['total'] = plot_df['target_0'] + plot_df['target_1']
+            plot_df['total_perc'] = 100*plot_df['total']/sum(plot_df['total'])
+            plot_df['target_1_perc_overall'] = 100*plot_df['target_1']/sum(plot_df['target_1'])
+            plot_df['target_1_perc_within'] = 100*plot_df['target_1']/( plot_df['target_0'] + plot_df['target_1'])
+
+            # Graph 1
+            plot_categories_overall_eventrate(plot_df, var, target, cat_order)
+
+            # Graph 2
+            plot_categories_within_eventrate(plot_df, var, target, cat_order)
+
+    if model in ('reg', 'regression'):
+        print("To be Done")
+
 #### -------- Categorical Variables ------- #####
 #################################################
 
@@ -432,47 +551,69 @@ def categorical_plots(df, variables, add_missing = True, add_rare = False, rare_
         plt.show()
 
 
-def  categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol = 5):
+def  categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol1 = 5, rare_tol2 = 10):
     """
     Parameters:
     -----------
-        df : Dataframe for which Analysis to be performed
-        variables : input type list. All the categorical variables needed for plotting
-        target : Target variable
-        model : type of problem - classification or regression
-                For classification related analysis. use 'classification' or 'clf'
-                For regression related analysis. use 'regression' or 'reg'
-        add_missing : default True. if True it will replace missing values by 'Missing'
-        rare_tol : {5 or 10}
+        df : Dataframe
+            Dataframe for which Analysis to be performed
+        variables : list type
+            All the categorical variables needed for plotting
+        target : str
+            Target variable
+        model : str, default 'clf'
+        type of problem - classification or regression
+            'classification' or 'clf' for classification related analysis 
+            'regression' or 'reg' for regression related analysis
+        add_missing : bool, default True. 
+            if True it will replace missing values by 'Missing'
+        rare_tol1 : int, default 5
             percentage line to demonstrate categories with very less data
+        rare_tol2 : int, default 10
+            percentage line to demonstrate categories with very less data
+    
     Returns:
+    --------
+        Nothing
+    
+    Results:
     --------
         Category plots for all the variables
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
 
-    for i, var in enumerate(variables, 1):
+    if model in ('clf', 'classification'):
 
-        printmd (f'**<u> {i}. Plot for {var}</u>**')
+        for i, var in enumerate(variables, 1):
 
-        if add_missing:
-            eda_df[var] = eda_df[var].fillna('Missing')
-        
+            printmd (f'**<u> {i}. Plot for {var}</u>**')
 
-        plot_df =  calculate_mean_target_per_category (eda_df, var, target)
-        cat_order = list(plot_df[var])
+            if add_missing:
+                eda_df[var] = eda_df[var].fillna('Missing')
 
-        if model in('clf' or 'classification'):
-            plot_df[target] = 100*plot_df[target]
 
-        
-        # Graph:1 to show the overall event rate across categories
-        if model in ('clf', 'classification'):
+            plot_df = get_plot_df(eda_df, var, target)
+            cat_order = list(plot_df[var])
 
-            tmp = pd.crosstab(eda_df[var], eda_df[target], normalize='columns') * 100
-            tmp = tmp.reset_index()
-            tmp.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
+            # Graph:1 to show the overall event rate across categories
+            plot_categories_overall_eventrate(plot_df, var, target, cat_order, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+
+
+            # Graph:2 to show the mean target value within each category
+            plot_categories_within_eventrate(plot_df, var, target, cat_order, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+
+    if model in ('reg', 'regression'):
+
+        for i, var in enumerate(variables, 1):
+
+            printmd (f'**<u> {i}. Plot for {var}</u>**')
+
+            if add_missing:
+                eda_df[var] = eda_df[var].fillna('Missing')
+
+            plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+            cat_order = list(plot_df[var])
 
             fig, ax = plt.subplots(figsize=(12,4))
             plt.xticks(plot_df.index, plot_df[var], rotation = 90)
@@ -480,52 +621,25 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
             ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
 
             ax2 = ax.twinx()
-            ax2 = sns.pointplot(data = tmp, x=var, y='target_1', order = cat_order, color='black')
+            ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
 
             ax.axhline(y=rare_tol, color = 'red')
             ax.axhline(y=rare_tol+5, color = 'darkred')
 
-            ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var})', fontsize=17)
-            #ax.set_xlabel(var, fontsize=14)
-            ax.set_ylabel('Perc of Categories', fontsize=14)
-            ax2.set_ylabel("Perc of Events across all Categories", fontsize=14)
 
-            plt.show()
-
-
-        # Graph:2 to show the mean target value within each category
-        fig, ax = plt.subplots(figsize=(12,4))
-        plt.xticks(plot_df.index, plot_df[var], rotation = 90)
-
-        ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
-
-        ax2 = ax.twinx()
-        ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
-
-        ax.axhline(y=rare_tol, color = 'red')
-        ax.axhline(y=rare_tol+5, color = 'darkred')
-
-
-        if model in('clf' or 'classification'):
-            ax.set_title(f'Event Rate of target ({target}) within each category of variable ({var})', fontsize=17)
-            ax2.set_ylabel("Perc of Events within Category", fontsize=14)
-            #ax.set_xlabel(var, fontsize=14)
-            ax.set_ylabel('Perc of Categories', fontsize=14)
-
-        elif model in('reg' or 'regression'):
             ax.set_title(f'Mean value of target ({target}) within each category of variable ({var})', fontsize=17)
             ax2.set_ylabel('Mean Target Value', fontsize=14) 
             #ax.set_xlabel(var, fontsize=14)
             ax.set_ylabel('Perc of Categories', fontsize=14)
 
-        plt.show()
+            plt.show()
 
-        display_all(plot_df.set_index(var).transpose())
+            #display_all(plot_df.set_index(var).transpose())
 
         
 
 
-def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf', add_missing = True, rare_v1=5, rare_v2=10):
+def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf', add_missing = True, rare_tol1=5, rare_tol2=10):
     """
     Useful for deciding what percentage of rare encoding would be useful
     Parameters:
@@ -537,8 +651,8 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
                 For classification related analysis. use 'classification' or 'clf'
                 For regression related analysis. use 'regression' or 'reg'
         add_missing : default True. if True it will replace missing values by 'Missing'
-        rare_v1 : Input percentage as number ex 5, 10 etc (default : 5) combines categories less than that and show distribution
-        rare_v2 : Input percentage as number ex 5, 10 etc (default : 10) combines categories less than that and show distribution
+        rare_tol1 : Input percentage as number ex 5, 10 etc (default : 5) combines categories less than that and show distribution
+        rare_tol2 : Input percentage as number ex 5, 10 etc (default : 10) combines categories less than that and show distribution
        
     Returns:
     --------
@@ -548,97 +662,141 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
     length_df = len(eda_df)
 
 
-    for i, var in enumerate(variables, 1):
+    if model in ('clf', 'classification'):
+        for i, var in enumerate(variables, 1):
 
-        print (f'{i}. Plot for {var}')
+            print (f'{i}. Plot for {var}')
 
-        if add_missing:
-            eda_df[var] = eda_df[var].fillna('Missing')
+            if add_missing:
+                eda_df[var] = eda_df[var].fillna('Missing')
 
-        
-        # 1st plot for categories as in in the dataset        
+            
+            # 1st plot for categories as in in the dataset  
+            plot_df = get_plot_df(eda_df, var, target)
+            cat_order = list(plot_df[var])
 
-        plot_df =  calculate_mean_target_per_category (eda_df, var, target)
-        cat_order = list(plot_df[var])
-
-        if model in('clf' or 'classification'):
-            plot_df[target] = 100*plot_df[target]
+            
+            title1 = f'As Is Distribution of {var}'
+            plot_categories_within_eventrate(plot_df, var, target, cat_order, title = title1, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
 
-        fig, ax = plt.subplots(figsize=(12,4))
-        plt.xticks(plot_df.index, plot_df[var], rotation = 90)
+            # 2nd plot after combining categories less than 5% 
 
-        ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
+            if rare_tol1:
+                rare_tol1_df = eda_df.copy()[[var, target]]
+                s_v1 = pd.Series(rare_tol1_df[var].value_counts() / length_df)
+                s_v1.sort_values(ascending = False, inplace = True)
+                non_rare_label = [ix for ix, perc in s_v1.items() if perc>rare_tol1/100]
+                rare_tol1_df[var] = np.where(rare_tol1_df[var].isin(non_rare_label), rare_tol1_df[var], 'Rare')
 
-        ax2 = ax.twinx()
-        ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
+                plot_df_tol1 =  get_plot_df (rare_tol1_df, var, target)
+                cat_order = list(plot_df_tol1[var])
 
-        ax.set_title(f'As Is Distribution of {var}', fontsize=17)
-        #ax.set_xlabel(var, fontsize=14)
-        ax.set_ylabel('Perc of Categories', fontsize=14)
+                title2 = f'Distribution of {var} after combining categories less than {rare_tol1}%'
+                plot_categories_within_eventrate(plot_df_tol1, var, target, cat_order, title = title2, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
-        ax.axhline(y=rare_v1, color = 'red')
-        ax.axhline(y=rare_v2, color = 'darkred')
 
-        if model in('clf' or 'classification'):
-            ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+            # 3nd plot after combining categories less than 10% 
 
-        elif model in('reg' or 'regression'):
-            ax2.set_ylabel('Mean Target Value', fontsize=14) 
+            if rare_tol2:
+                rare_tol2_df = eda_df.copy()[[var, target]]
+                s_v2 = pd.Series(rare_tol2_df[var].value_counts() / length_df)
+                s_v2.sort_values(ascending = False, inplace = True)
+                non_rare_label = [ix for ix, perc in s_v2.items() if perc>rare_tol2/100]
+                rare_tol2_df[var] = np.where(rare_tol2_df[var].isin(non_rare_label), rare_tol2_df[var], 'Rare')
 
-        plt.show()
-        display_all(plot_df.set_index(var).transpose())
-        print()
+                plot_df_tol2 =  get_plot_df (rare_tol2_df, var, target)
+                cat_order = list(plot_df_tol2[var])
 
-        # 2nd plot after combining categories less than 5%    
-        if rare_v1:
-            rare_v1_df = eda_df.copy()[[var, target]]
-            s_v1 = pd.Series(rare_v1_df[var].value_counts() / length_df)
-            s_v1.sort_values(ascending = False, inplace = True)
-            non_rare_label = [ix for ix, perc in s_v1.items() if perc>rare_v1/100]
-            rare_v1_df[var] = np.where(rare_v1_df[var].isin(non_rare_label), rare_v1_df[var], 'Rare')
+                title3 = f'Distribution of {var} after combining categories less than {rare_tol2}%'
+                plot_categories_within_eventrate(plot_df_tol2, var, target, cat_order, title = title3, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
-            plot_df_v1 =  calculate_mean_target_per_category (rare_v1_df, var, target)
-            cat_order = list(plot_df_v1[var])
+
+
+
+    if model in ('reg', 'regression'):
+
+        for i, var in enumerate(variables, 1):
+
+            print (f'{i}. Plot for {var}')
+
+            if add_missing:
+                eda_df[var] = eda_df[var].fillna('Missing')
+
+            
+            # 1st plot for categories as in in the dataset        
+
+            plot_df =  calculate_mean_target_per_category (eda_df, var, target)
+            cat_order = list(plot_df[var])
 
             if model in('clf' or 'classification'):
-                plot_df_v1[target] = 100*plot_df_v1[target]
+                plot_df[target] = 100*plot_df[target]
+
 
             fig, ax = plt.subplots(figsize=(12,4))
-            plt.xticks(plot_df_v1.index, plot_df_v1[var], rotation = 90)
+            plt.xticks(plot_df.index, plot_df[var], rotation = 90)
 
-            ax.bar(plot_df_v1.index, plot_df_v1['perc'], align = 'center', color = 'lightgrey')
+            ax.bar(plot_df.index, plot_df['perc'], align = 'center', color = 'lightgrey')
 
             ax2 = ax.twinx()
-            ax2 = sns.pointplot(data = plot_df_v1, x=var, y=target, order = cat_order, color='green')
+            ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
 
-            ax.set_title(f'Distribution of {var} after combining categories less than {rare_v1}%', fontsize=17)
+            ax.set_title(f'As Is Distribution of {var}', fontsize=17)
             #ax.set_xlabel(var, fontsize=14)
             ax.set_ylabel('Perc of Categories', fontsize=14)
 
-            ax.axhline(y=rare_v1, color = 'red')
-            ax.axhline(y=rare_v2, color = 'darkred')
-
-            if model in('clf' or 'classification'):
-                ax2.set_ylabel("Perc of Events within Category", fontsize=14)
-
-            elif model in('reg' or 'regression'):
-                ax2.set_ylabel('Mean Target Value', fontsize=14) 
+            ax.axhline(y=rare_tol1, color = 'red')
+            ax.axhline(y=rare_tol2, color = 'darkred')
+            ax2.set_ylabel('Mean Target Value', fontsize=14) 
 
             plt.show()
-            display_all(plot_df_v1.set_index(var).transpose())
+            display_all(plot_df.set_index(var).transpose())
             print()
+
+            # 2nd plot after combining categories less than 5%    
+            if rare_tol1:
+                rare_tol1_df = eda_df.copy()[[var, target]]
+                s_v1 = pd.Series(rare_tol1_df[var].value_counts() / length_df)
+                s_v1.sort_values(ascending = False, inplace = True)
+                non_rare_label = [ix for ix, perc in s_v1.items() if perc>rare_tol1/100]
+                rare_tol1_df[var] = np.where(rare_tol1_df[var].isin(non_rare_label), rare_tol1_df[var], 'Rare')
+
+                plot_df_v1 =  calculate_mean_target_per_category (rare_tol1_df, var, target)
+                cat_order = list(plot_df_v1[var])
+
+                if model in('clf' or 'classification'):
+                    plot_df_v1[target] = 100*plot_df_v1[target]
+
+                fig, ax = plt.subplots(figsize=(12,4))
+                plt.xticks(plot_df_v1.index, plot_df_v1[var], rotation = 90)
+
+                ax.bar(plot_df_v1.index, plot_df_v1['perc'], align = 'center', color = 'lightgrey')
+
+                ax2 = ax.twinx()
+                ax2 = sns.pointplot(data = plot_df_v1, x=var, y=target, order = cat_order, color='green')
+
+                ax.set_title(f'Distribution of {var} after combining categories less than {rare_tol1}%', fontsize=17)
+                #ax.set_xlabel(var, fontsize=14)
+                ax.set_ylabel('Perc of Categories', fontsize=14)
+
+                ax.axhline(y=rare_tol1, color = 'red')
+                ax.axhline(y=rare_tol2, color = 'darkred')
+                ax2.set_ylabel('Mean Target Value', fontsize=14) 
+
+                plt.show()
+                display_all(plot_df_v1.set_index(var).transpose())
+                print()
 
 
         # 3rd plot after combining categories less than 10%  
-        if rare_v2:
-            rare_v2_df = eda_df.copy()[[var, target]]
-            s_v2 = pd.Series(rare_v2_df[var].value_counts() / length_df)
+        if rare_tol2:
+            rare_tol2_df = eda_df.copy()[[var, target]]
+            s_v2 = pd.Series(rare_tol2_df[var].value_counts() / length_df)
             s_v2.sort_values(ascending = False, inplace = True)
-            non_rare_label = [ix for ix, perc in s_v2.items() if perc>rare_v2/100]
-            rare_v2_df[var] = np.where(rare_v2_df[var].isin(non_rare_label), rare_v2_df[var], 'Rare')
+            non_rare_label = [ix for ix, perc in s_v2.items() if perc>rare_tol2/100]
+            rare_tol2_df[var] = np.where(rare_tol2_df[var].isin(non_rare_label), rare_tol2_df[var], 'Rare')
 
-            plot_df_v2 =  calculate_mean_target_per_category (rare_v2_df, var, target)
+            plot_df_v2 =  calculate_mean_target_per_category (rare_tol2_df, var, target)
             cat_order = list(plot_df_v2[var])
 
             if model in('clf' or 'classification'):
@@ -652,18 +810,13 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
             ax2 = ax.twinx()
             ax2 = sns.pointplot(data = plot_df_v2, x=var, y=target, order = cat_order, color='green')
 
-            ax.set_title(f'Distribution of {var} after combining categories less than {rare_v2}%', fontsize=17)
+            ax.set_title(f'Distribution of {var} after combining categories less than {rare_tol2}%', fontsize=17)
             #ax.set_xlabel(var, fontsize=14)
             ax.set_ylabel('Perc of Categories', fontsize=14)
 
-            ax.axhline(y=rare_v1, color = 'red')
-            ax.axhline(y=rare_v2, color = 'darkred')
-
-            if model in('clf' or 'classification'):
-                ax2.set_ylabel("Perc of Events within Category", fontsize=14)
-
-            elif model in('reg' or 'regression'):
-                ax2.set_ylabel('Mean Target Value', fontsize=14) 
+            ax.axhline(y=rare_tol1, color = 'red')
+            ax.axhline(y=rare_tol2, color = 'darkred')
+            ax2.set_ylabel('Mean Target Value', fontsize=14) 
 
             plt.show()
             display_all(plot_df_v2.set_index(var).transpose())

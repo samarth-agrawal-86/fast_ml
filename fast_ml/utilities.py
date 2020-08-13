@@ -84,6 +84,126 @@ def  plot_categories_with_target ( df, c, target, rare_tol=5):
 
     plt.show()
 
+def get_plot_df(eda_df, var, target):
+    """
+    Useful for classification type 
+    """
+    plot_df = pd.crosstab(eda_df[var], eda_df[target])
+    #print(plot_df.index)
+    plot_df = plot_df.reset_index()
+    plot_df.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
+    plot_df['total'] = plot_df['target_0'] + plot_df['target_1']
+    plot_df['total_perc'] = 100*plot_df['total']/sum(plot_df['total'])
+    plot_df['target_1_perc_overall'] = 100*plot_df['target_1']/sum(plot_df['target_1'])
+    plot_df['target_1_perc_within'] = 100*plot_df['target_1']/( plot_df['target_0'] + plot_df['target_1'])
+    plot_df.sort_values(by = 'total_perc', ascending = False, inplace = True, ignore_index = True)
+
+    return plot_df
+
+def plot_categories_overall_eventrate(plot_df, var, target, cat_order, rare_tol1 = None, rare_tol2 = None):
+
+    if len(plot_df)>15: text_x = plot_df.index[-4]
+    elif len(plot_df)>8: text_x = plot_df.index[-3]
+    else: text_x = plot_df.index[-2]
+
+    fig, ax = plt.subplots(figsize=(14,4))
+    plt.xticks(plot_df.index, cat_order, rotation = 90)
+    #ax.bar(plot_df.index, plot_df['total_perc'], align = 'center', color = 'lightgrey')
+    ax = sns.barplot(data=plot_df, x=var, y='total_perc',order =cat_order, color ='lightgrey')
+
+    ax2 = ax.twinx()
+    ax2 = sns.pointplot(data = plot_df, x=var, y='target_1_perc_overall', order = cat_order, color='black')
+    ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var}) Bins', fontsize=17)
+    #ax.set_xlabel(var, fontsize=14)
+    ax.set_ylabel('Perc of Categories', fontsize=14)
+    ax2.set_ylabel("Perc of Events across all Categories", fontsize=14)
+    hline1 = round(plot_df['target_1_perc_overall'].mean(),1)
+    ax2.axhline(y=hline1, color = 'blue', alpha=0.4)
+    
+    # add text for horizontal line
+    ax2.text(text_x, hline1+0.01, "Avg Event Rate (overall): "+str(hline1)+'%',
+            fontdict = {'size': 8, 'color':'blue'})
+    
+    # add text for bar plot and point plot
+    for pt in range(0, plot_df.shape[0]):
+        ax.text(plot_df.index[pt]-0.04, 
+                 plot_df.total_perc[pt]+0.04, 
+                 str(round(plot_df.total_perc[pt],1))+'%',
+                 fontdict = {'size': 8, 'color':'grey'})
+
+        ax2.text(plot_df.index[pt]+0.05, 
+                 plot_df.target_1_perc_overall[pt], 
+                 str(round(plot_df.target_1_perc_overall[pt],1))+'%',
+                 fontdict = {'size': 8, 'color':'black'})
+
+    if rare_tol1:
+        ax.axhline(y=rare_tol1, color = 'red', alpha=0.5)
+    
+        # add text for rare line
+        ax.text(0, rare_tol1, "Rare Tol: "+str(rare_tol1)+'%', fontdict = {'size': 8, 'color':'red'})
+
+    if rare_tol2:
+        ax.axhline(y=rare_tol2, color = 'darkred', alpha=0.5)
+    
+        # add text for rare line
+        ax.text(0, rare_tol2, "Rare Tol: "+str(rare_tol2)+'%', fontdict = {'size': 8, 'color':'darkred'})
+
+    plt.show()
+
+
+def plot_categories_within_eventrate(plot_df, var, target, cat_order, title = None, rare_tol1=None, rare_tol2=None):
+
+    if len(plot_df)>15: text_x = plot_df.index[-4]
+    elif len(plot_df)>8: text_x = plot_df.index[-3]
+    else: text_x = plot_df.index[-2]
+
+    fig, ax = plt.subplots(figsize=(14,4))
+    plt.xticks(plot_df.index, cat_order, rotation = 90)
+    #ax.bar(plot_df.index, plot_df['total_perc'], align = 'center', color = 'lightgrey')
+    ax = sns.barplot(data=plot_df, x=var, y='total_perc',order =cat_order, color ='lightgrey')
+
+    ax2 = ax.twinx()
+    ax2 = sns.pointplot(data = plot_df, x=var, y='target_1_perc_within', order = cat_order, color='green')
+    if title:
+        ax.set_title(title, fontsize=17)
+    else:
+        ax.set_title(f'Event Rate of target ({target}) within each category of variable ({var}) Bins', fontsize=17)
+    ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+    #ax.set_xlabel(var, fontsize=14)
+    ax.set_ylabel('Perc of Categories', fontsize=14)
+    hline2 = round(plot_df['target_1_perc_within'].mean(),1)
+    ax2.axhline(y=hline2, color = 'magenta', alpha=0.4)
+    
+    # add text for horizontal line
+    ax2.text(text_x, hline2+0.01, "Avg Event Rate (within): "+str(hline2)+'%',
+            fontdict = {'size': 8, 'color':'magenta'})
+    
+    # add text for bar plot and point plot
+    for pt in range(0, plot_df.shape[0]):
+        ax.text(plot_df.index[pt]-0.04, 
+                 plot_df.total_perc[pt]+0.04, 
+                 str(round(plot_df.total_perc[pt],1))+'%',
+                 fontdict = {'size': 8, 'color':'grey'})
+
+        ax2.text(plot_df.index[pt]+0.05, 
+                 plot_df.target_1_perc_within[pt], 
+                 str(round(plot_df.target_1_perc_within[pt],1))+'%',
+                 fontdict = {'size': 8, 'color':'green'})
+
+    if rare_tol1:
+        ax.axhline(y=rare_tol1, color = 'red', alpha=0.5)
+    
+        # add text for rare line
+        ax.text(0, rare_tol1, "Rare Tol: "+str(rare_tol1)+'%', fontdict = {'size': 8, 'color':'red'})
+
+    if rare_tol2:
+        ax.axhline(y=rare_tol2, color = 'darkred', alpha=0.5)
+    
+        # add text for rare line
+        ax.text(0, rare_tol2, "Rare Tol: "+str(rare_tol2)+'%', fontdict = {'size': 8, 'color':'darkred'})
+
+    plt.show()
+
 '''
 def  calculate_mean_target_per_category (df, c, target):
     

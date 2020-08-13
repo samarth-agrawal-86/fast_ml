@@ -2,13 +2,123 @@ import pandas as pd
 import numpy as np
 
 
+class FeatureEngineering_Numerical:
+    
+    def __init__(self, method='10p', custom_buckets=None, adaptive = True, model='clf'):
+        '''
+        Select various binning techniques for bucketing the numerical variables
+
+        Varous default methods can be used for binning as well as custom binns can be defined
+
+
+
+        Parameters:
+        -----------
+            method : str. Default '10p'
+                '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+                '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                '20p' : [0, 20, 40, 60, 80, 100]
+                '25p' : [0, 25, 50, 75, 100]
+                '95p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+                '98p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+            custom_buckets : list type. Default None
+                if method = custom then custom_buckets need to be defined
+            adaptive : bool. Default True
+                If any numerical variable is skewed in nature then choosing adaptive will try to find the 
+                next change in the percentile value and will not create the similar bins
+            model : str. Default 'clf'
+                'classification' or 'clf' for classification related analysis 
+                'regression' or 'reg' for regression related analysis
+
+        Attributes:
+        -----------
+            param_dict_ : dictionary
+                Parameter dictionary stores the bins created for the provided variables
+
+        '''
+        self.method = method
+        self.custom_buckets = custom_buckets
+        self.adaptive = adaptive
+        self.model = model
+    
+    def fit(self, df, variables):
+        
+        '''
+        Parameters:
+        -----------
+            df : dataframe
+            variables : list 
+        
+        Attributes:
+        -----------
+            param_dict_ : dictionary
+                Parameter dictionary stores the bins created for the provided variables
+
+        '''
+        #fe_df = df.copy()
+        self.param_dict_ ={}
+        
+        if self.method == '5p':
+            buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]                
+        elif self.method == '10p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        elif self.method == '20p':
+            buckets = [0, 20, 40, 60, 80, 100]
+        elif self.method == '25p':
+            buckets = [0, 25, 50, 75, 100]
+        elif self.method == '95p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        elif self.method == '98p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+        elif self.method == 'custom':
+            if self.custom_buckets==None:
+                raise ValueError("for 'custom' method provide a valid value in the 'custom_buckets' parameter")
+            else:
+                buckets = self.custom_buckets
+        
+        for var in variables:
+            s = df[var].dropna()
+
+            if self.adaptive:
+                bins = sorted(set(list(np.percentile(s, buckets))))
+            else:
+                bins = list(np.percentile(s, buckets))
+
+            print(bins)
+            bins[0] = -np.inf
+            bins[-1] = np.inf
+            print(bins)
+            
+            self.param_dict_[var] = bins
+            
+    def transform(self, df):
+        '''
+        Parameters:
+        -----------
+            df : dataframe
+        
+        Returns:
+        --------
+            df : dataframe 
+                dataframe with binned numerical variables
+        '''
+        
+        if self.method in ('5p', '10p', '20p', '25p', '95p', '98p', 'custom'):
+            for var, binner in self.param_dict_.items():
+                df[var] = pd.cut(df[var], bins = binner, include_lowest=True)
+                df[var] = df[var].astype('object')
+                df[var].fillna('Missing', inplace = True)
+                
+        return df
+
 class FeatureEngineering_Categorical:
     def __init__(self, model=None, method='label', drop_last=False, n_frequent=None):
         """
         Parameters:
         -----------
-            model : default is None. Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model to be defined as 'classification' or 'clf'
-            method :
+            model : str. default None. 
+                Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model to be defined as 'classification' or 'clf'
+            method : str
                 'rare_encoding' or 'rare' : for combining less frequent categories into 'Rare' label first. 
                 'one-hot' or 'onehot' : for one hot encoding
                 'integer' or 'label' : converts categories into codes
@@ -22,10 +132,11 @@ class FeatureEngineering_Categorical:
                 'target_prob_ratio' : only for classification models, takes the ratio of target =1 / target =0
                 'target_woe' : only for classification models, calculates the weight of evidence(woe) for each category and replaces the value for that
                 
-            drop_last : if method = 'one-hot' then use this parameter to drop last category 
-            n_frequent : if method = 'one-hot' then use this parameter to get only the top n categories 
-            rare_tol : Threshold limit to combine the rare occurrence categories, (rare_tol=0.05) i.e., less than 5% occurance categories will be grouped and forms a rare category 
-
+            drop_last : bool. default False
+                if method = 'one-hot' then use this parameter to drop last category 
+            n_frequent : int. default None
+                if method = 'one-hot' then use this parameter to get only the top n categories 
+            
             
         """
         self.method = method
@@ -39,10 +150,14 @@ class FeatureEngineering_Categorical:
         
         Parameters:
         -----------
-            df : training dataset
-            variables : list of all the categorical variables
-            target : target variable if any target encoding method is used
-            rare_tol : Threshold limit to combine the rare occurrence categories, (default value of rare_tol=5)  i.e., less than 5% occurance categories will be grouped and forms a rare category 
+            df : dataframe 
+                training dataset on the parameters need to be learned
+            variables : list type
+                list of all the categorical variables for which encoding needs to be learned
+            target : str
+                target variable if any target encoding method is used
+            rare_tol : int. Default 5. Range (0 to 100)
+                Threshold limit to combine the rare occurrence categories, (default value of rare_tol=5)  i.e., less than 5% occurance categories will be grouped and forms a rare category 
 
             
         '''
@@ -166,34 +281,77 @@ class FeatureEngineering_Categorical:
                 
         
 
-def FeatureEngineering_DateTime (df, datetime_var, prefix, drop_orig=True):
-    """
-    This function extracts more features from datetime variable
-    ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
-              'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
-    
-    Parameters:
-    -----------
-        df : dataset 
-        datetime_var : only single datetime variable at one time
-        prefix : prefix for the new variables that are going to get created 
-        drop_orig : If True then original variable is dropped. Usually it's kept as True
+class FeatureEngineering_DateTime:
+
+    def __init__(self, drop_orig=True):
+        """
+        This function extracts more features from datetime variable
+        ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
+                  'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
         
-    Returns:
-    ---------
-        df : returns a new dataframe with more engineered variables
+        Parameters:
+        -----------
+            df : dataframe
+            datetime_var : 
+                only single datetime variable at one time
+            prefix : prefix for the new variables that are going to get created 
+            drop_orig : If True then original variable is dropped. Usually it's kept as True
+            
+        Returns:
+        ---------
+            df : returns a new dataframe with more engineered variables
+            
+        Example:
+        --------
+            train_new = FeatureEngineering_DateTime (df=train, datetime_var='Saledate', prefix='Saledate_', drop_orig=True )
+        """
+        self.drop_orig=drop_orig
+
+    def fit(self, df, datetime_variables, prefix='default'):
+        '''
+        Parameters:
+        -----------
+            df : Dataframe
+            datetime_variables : list type
+            prefix : str. Default 'default'
+                If kept default then variable name will be used as prefix for additional features that are getting created
+
+        Attributes:
+        -----------
+
+        '''
+        self.datetime_variables = datetime_variables
+        self.prefix = prefix
+        self.param_dict_ = "No Parameter dictionary needed for this. Use transform() method"
+
+
+
+    
+    def transform(df):
+        '''
+        Parameters:
+        -----------
+            df : Dataframe
+
+        Returns:
+        --------
+            df : Dataframe
+                Transformed dataframe with all the additional features
+
+        '''
+
+        for var in self.datetime_variables:
+
+
+            if self.prefix =='default':
+                pfx = str(var)+'_'
+
+            features = ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
+                        'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
+            for f in features:
+                df[pfx+f] = getattr(df[var].dt, f)
+            
+            if drop_orig:
+                df.drop(var, axis=1, inplace = True)
         
-    Example:
-    --------
-        train_new = FeatureEngineering_DateTime (df=train, datetime_var='Saledate', prefix='Saledate_', drop_orig=True )
-    """
-    
-    features = ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
-              'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
-    for f in features:
-        df[prefix+f] = getattr(df[datetime_var].dt, f)
-    
-    if drop_orig:
-        df.drop(datetime_var, axis=1, inplace = True)
-    
-    return df
+        return df

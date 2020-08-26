@@ -2,21 +2,31 @@ import pandas as pd
 import numpy as np
 
 
+'''
+@ More methods of outlier treatment
 
+- Isolation Forest
+- KNN
+- Average KNN
+- Angle Based Outlier Detection
+- Clustering Based local outlier factor
+- Feature Bagging
+'''
 
 class OutlierTreatment():   
     
-    def __init__ (self, method, tol = 1.5):
+    def __init__ (self, method='iqr', tol = 1.5):
         """
     This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation & Gaussian Calculation
     
     
     Parameters:
     -----------
-        method:
+        method: str, default 'iqr'
             'iqr' or 'IQR' for interquartile calculation based outlier treatment
             'gaussian' for gaussian (meand and std dev) calculation based outlier treatment
-        tol : tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
+        tol : float, default 1.5
+            tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
         
     Returns:
     --------
@@ -30,9 +40,11 @@ class OutlierTreatment():
         """
         Parameters:
         -----------
-            df : dataset on which you are working on
-            variables: optional parameter. list of all the numeric variables. 
-                   if not provided then it automatically identifies the numeric variables and analyzes for them
+            df : dataframe
+                dataset on which you are working on
+            variables: list type, optional parameter. 
+                list of all the numeric variables. 
+                if not provided then it automatically identifies the numeric variables and checks for outliers
 
         """
         tol = self.tol
@@ -48,7 +60,7 @@ class OutlierTreatment():
         if self.method =='log':
             print ('Fit method not required; You can directly use the transform method')
 
-        if self.method =='iqr' or self.method =='IQR':   
+        if self.method == 'iqr' or self.method == 'IQR':   
             for var in variables:
                 
                 s = df.loc[df[var].notnull(), var]
@@ -78,11 +90,12 @@ class OutlierTreatment():
        
             
     
-    def transform(self,df):
+    def transform(self, df):
         """
         Parameters:
         -----------
-            df : dataset on which you are working on
+            df : dataframe
+                dataset on which you are working on
         
         Returns:
         --------

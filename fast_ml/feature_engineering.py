@@ -21,6 +21,7 @@ class FeatureEngineering_Numerical:
                 '25p' : [0, 25, 50, 75, 100]
                 '95p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
                 '98p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+                'custom' : then provide buckets in the 'custom_buckets'
             custom_buckets : list type. Default None
                 if method = custom then custom_buckets need to be defined
             adaptive : bool. Default True
@@ -64,7 +65,7 @@ class FeatureEngineering_Numerical:
             buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
         elif self.method == '20p':
             buckets = [0, 20, 40, 60, 80, 100]
-        elif self.method == '25p':
+        elif self.method == '25p':  
             buckets = [0, 25, 50, 75, 100]
         elif self.method == '95p':
             buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
@@ -84,10 +85,8 @@ class FeatureEngineering_Numerical:
             else:
                 bins = list(np.percentile(s, buckets))
 
-            print(bins)
             bins[0] = -np.inf
             bins[-1] = np.inf
-            print(bins)
             
             self.param_dict_[var] = bins
             
@@ -291,19 +290,23 @@ class FeatureEngineering_DateTime:
         
         Parameters:
         -----------
-            df : dataframe
-            datetime_var : 
-                only single datetime variable at one time
-            prefix : prefix for the new variables that are going to get created 
-            drop_orig : If True then original variable is dropped. Usually it's kept as True
+            df : DataFrame
+            drop_orig : bool, default True
+                If True then original variable is dropped
             
         Returns:
         ---------
-            df : returns a new dataframe with more engineered variables
+            df : DataFrame
+                Returns a new dataframe with more engineered variables
             
         Example:
         --------
-            train_new = FeatureEngineering_DateTime (df=train, datetime_var='Saledate', prefix='Saledate_', drop_orig=True )
+            dt_imputer = FeatureEngineering_DateTime (drop_orig=True)
+            dt_imputer.fit(train, ['saledate'], prefix = 'saledate_')
+
+            train = dt_imputer.transform(train)
+
+
         """
         self.drop_orig=drop_orig
 
@@ -327,7 +330,7 @@ class FeatureEngineering_DateTime:
 
 
     
-    def transform(df):
+    def transform(self, df):
         '''
         Parameters:
         -----------
@@ -351,7 +354,7 @@ class FeatureEngineering_DateTime:
             for f in features:
                 df[pfx+f] = getattr(df[var].dt, f)
             
-            if drop_orig:
+            if self.drop_orig:
                 df.drop(var, axis=1, inplace = True)
         
         return df

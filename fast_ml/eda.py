@@ -252,8 +252,11 @@ def numerical_plots(df, variables, normality_check = False):
 
     Parameters:
     -----------
-        df : Dataframe for which Analysis to be performed
-        variables : input type list. All the Numerical variables needed for plotting
+        df : dataframe
+            Dataframe for which Analysis to be performed
+        variables : list type, optional
+            All the Numerical variables needed for plotting
+            if not provided then it automatically identifies the numeric variables and analyzes for them
         normality_check: 'True' or 'False'
             if True: then it will plot the Q-Q plot and kde plot for the variable
             if False: just plot the histogram of the variable
@@ -265,6 +268,11 @@ def numerical_plots(df, variables, normality_check = False):
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns        
+    else:
+        variables = variables
 
     if normality_check==True:
         for i, var in enumerate(variables, 1):
@@ -305,12 +313,16 @@ def numerical_plots_with_target(df, variables, target, model):
 
     Parameters:
     -----------
-        df : Dataframe for which Analysis to be performed
-        variables : input type list. All the Numerical variables needed for plotting
-        target : Target variable
-        model : type of problem - classification or regression
-                For classification related analysis. use 'classification' or 'clf'
-                For regression related analysis. use 'regression' or 'reg'
+        df : dataframe
+            Dataframe for which Analysis to be performed
+        variables : list type, optional
+            All the Numerical variables needed for plotting
+            if not provided then it automatically identifies the numeric variables and analyzes for them
+        target : str
+            Target variable
+        model : str, default 'clf'
+            'classification' or 'clf' for classification related analysis 
+            'regression' or 'reg' for regression related analysis
         
 
     Returns:
@@ -320,6 +332,11 @@ def numerical_plots_with_target(df, variables, target, model):
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns        
+    else:
+        variables = variables
 
     if model == 'classification' or model == 'clf':
 
@@ -369,14 +386,18 @@ def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
     
     Parameters:
     -----------
-        df : dataset on which you are working on
-        variables: optional parameter. list of all the numeric variables. 
-                   if not provided then it automatically identifies the numeric variables and analyzes for them
-        tol : tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
+        df : dataframe
+            dataset on which you are working on
+        variables: list type, optional 
+            list of all the numeric variables. 
+            if not provided then it automatically identifies the numeric variables and analyzes for them
+        tol : float, default 1.5
+            tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
         
     Returns:
     --------
-        dataframe with variables that contain outliers
+        Dataframe
+            dataframe with variables that contain outliers
     """
     
     outlier_dict = {}
@@ -431,6 +452,7 @@ def numerical_bins_with_target (df, variables, target, model='clf', create_bucke
             'regression' or 'reg' for regression related analysis
         create_buckets : bool, default True
         method : string, default '5p'
+            '2p'  : [0,2,4,6,8,10,12.....90,92,94,96,98,100]
             '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
             '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
             '20p' : [0, 20, 40, 60, 80, 100]
@@ -445,6 +467,8 @@ def numerical_bins_with_target (df, variables, target, model='clf', create_bucke
 
     if create_buckets:
 
+        if method =='2p' :
+            buckets = list(range(0,101,2))
         if method == '5p':
             buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
         elif method == '10p':
@@ -472,7 +496,12 @@ def numerical_bins_with_target (df, variables, target, model='clf', create_bucke
                 s = eda_df[var].dropna()
                 
                 spread_stats = s.describe(percentiles = np.array(buckets)/100).to_frame().T
-                spread_stats.drop(columns = ['min', 'max'], inplace=True)
+                
+                if 50 not in buckets:
+                    spread_stats.drop(columns = ['min', 'max', '50%'], inplace=True)
+                else:
+                    spread_stats.drop(columns = ['min', 'max'], inplace=True)
+                
                 printmd(f'**Spread Statistics for {var} :')
                 display_all(spread_stats)
 
@@ -520,6 +549,10 @@ def categorical_plots(df, variables, add_missing = True, add_rare = False, rare_
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
+    if variables == None:
+        variables = df.select_dtypes(include = ['object']).columns        
+    else:
+        variables = variables
 
     for i, var in enumerate(variables, 1):
 
@@ -562,9 +595,9 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
         target : str
             Target variable
         model : str, default 'clf'
-        type of problem - classification or regression
-            'classification' or 'clf' for classification related analysis 
-            'regression' or 'reg' for regression related analysis
+            type of problem - classification or regression
+                'classification' or 'clf' for classification related analysis 
+                'regression' or 'reg' for regression related analysis
         add_missing : bool, default True. 
             if True it will replace missing values by 'Missing'
         rare_tol1 : int, default 5
@@ -582,6 +615,10 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
+    if variables == None:
+        variables = df.select_dtypes(include = ['object']).columns        
+    else:
+        variables = variables
 
     if model in ('clf', 'classification'):
 
@@ -660,6 +697,10 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
     """
     eda_df = df.copy(deep=True)
     length_df = len(eda_df)
+    if variables == None:
+        variables = df.select_dtypes(include = ['object']).columns        
+    else:
+        variables = variables
 
 
     if model in ('clf', 'classification'):
@@ -845,6 +886,10 @@ def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
         
     """
     miss_df = df.copy()
+    if variables == None:
+        variables = df.select_dtypes(include = ['object']).columns        
+    else:
+        variables = variables
 
     if model in ('reg' , 'regression'):
         for i, var in enumerate(variables, 1):

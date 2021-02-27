@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+from re import search
 from scipy import stats
 from scipy.stats import norm
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ plot_categories_with_target , calculate_mean_target_per_category , plot_target_w
 get_plot_df, plot_categories_overall_eventrate, plot_categories_within_eventrate
 
 
-def df_summary(df):
+def df_info(df):
     """
     This function gives following insights about each variable -
         Datatype of that variable
@@ -19,6 +20,9 @@ def df_summary(df):
         Also displays the some of the unique values. (set to display upto 10 values)
         Number of missing values in that variable
         Percentage of missing values for that variable
+        data type grp -> numerical, categorical, datetime
+        missing bin -> missing perc groupped in (0 to 10), (10 to 20)... and so on
+        cardinality_bin -> distinct values of variable grouped in (0 to 10), (10 to 20)... and so on
 
     Parameters:
     ----------
@@ -26,7 +30,7 @@ def df_summary(df):
 
     Returns:
     --------
-        df : returns a dataframe that contains useful info for the analysis
+        df : returns 2 dataframes that contains useful info for the analysis
     """
     data_dict = {}
     for var in df.columns:
@@ -40,7 +44,126 @@ def df_summary(df):
 
     info_df = pd.DataFrame(data_dict).transpose()
     info_df = info_df[['data_type', 'num_unique_values', 'sample_unique_values', 'num_missing', 'perc_missing']]
+    
+    def data_type_grp(x):
+        x = str(x)
+        if search("int|float", x) : return 'Numerical'
+        elif search("object", x) : return 'Categorical'
+        else: return x
+    
+    def missing_bin(x):
+        if x ==0 : return '0'
+        elif x >0 and x<=10 : return  '(0  -- 10]'
+        elif x >10 and x<=20 : return '(10 -- 20]'
+        elif x >20 and x<=30 : return '(20 -- 30]'
+        elif x >30 and x<=40 : return '(30 -- 40]'
+        elif x >40 and x<=50 : return '(40 -- 50]'
+        elif x >50 and x<=60 : return '(50 -- 60]'
+        elif x >60 and x<=70 : return '(60 -- 70]'
+        elif x >70 and x<=80 : return '(70 -- 80]'
+        elif x >80 and x<=90 : return '(80 -- 90]'
+        elif x >90 and x<100 : return '(90 -- 100]'
+        elif x ==100: return '100'
+    
+    def cardinality_check(x):
+        if x == 0 : return '0.  0'
+        elif x >0 and x<=10 : return  '1. (0  -- 10]'
+        elif x >10 and x<=20 : return '2. (10 -- 20]'
+        elif x >20 and x<=30 : return '3. (20 -- 30]'
+        elif x >30 and x<=40 : return '4. (30 -- 40]'
+        elif x >40 and x<=50 : return '5. (40 -- 50]'
+        elif x >50 and x<=100 : return '6. (90 -- 100]'
+        elif x >100 and x<=200 : return '7. (100 -- 200]'
+        elif x >200 and x<=500 : return '8. (200 -- 500]'
+        elif x >500 and x<=1000 : return '9. (500 -- 1000]'
+        elif x >1000: return '99. 1000+'
+    
+    info_df['data_type_grp'] = info_df['data_type'].apply(data_type_grp)
+    info_df['missing_bin'] = info_df['perc_missing'].apply(missing_bin)
+    info_df['cardinality_bin'] = info_df['num_unique_values'].apply(cardinality_check)
+    
     return info_df
+
+def df_cardinality_info(df, raw_data = True):
+    """
+    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
+    by data_type and data_type_grp
+        
+
+    Parameters:
+    ----------
+        df : dataframe for analysis
+
+    Returns:
+    --------
+        df : returns 2 dataframes that contains Summary of variables cardinality by data type and data type groups
+    """
+
+    if raw_data: df_summary = df_info(df)
+    else : df_summary = df
+        
+    print('1. Data Type Groups -- Summary of Variables Cardinality')
+    info_pivot1 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
+                              margins=True, margins_name='Total',
+                              index = 'cardinality_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
+    display(info_pivot1)
+    print("\n\n")
+    
+    print('2. Data Type -- Summary of Variables Cardinality')
+    info_pivot2 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
+                              margins=True, margins_name='Total',
+                              index = 'cardinality_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
+    display(info_pivot2)
+
+
+def df_missing_info(df, raw_data = True):
+    """
+    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
+    by data_type and data_type_grp
+        
+
+    Parameters:
+    ----------
+        df : dataframe for analysis
+
+    Returns:
+    --------
+        returns 2 dataframes that contains Summary of variables without missing values by data type and data type groups
+        returns 2 dataframes that contains Summary of variables with missing values by data type and data type groups
+    """
+
+    if raw_data: df_summary = df_info(df)
+    else : df_summary = df
+        
+    
+    print('1. Data Type Groups -- Summary of Variables without missing values')
+    df_miss_res1 = pd.pivot_table(data = df_summary.query("missing_bin == '0'"), values = 'num_missing', 
+                                  margins=True, margins_name='Total Non Missing',
+                                  index = 'missing_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
+    display_all(df_miss_res1)
+    print("\n")
+
+    print('2. Data Type -- Summary of Variables without missing values')
+    df_miss_res2 = pd.pivot_table(data = df_summary.query("missing_bin == '0'"), values = 'num_missing', 
+                                  margins=True, margins_name='Total Non Missing',
+                                  index = 'missing_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
+    
+    
+    display_all(df_miss_res2)
+    print("\n\n")
+
+    print('3. Data Type Groups -- Summary of Variables with missing values')
+    df_miss_res3 = pd.pivot_table(data = df_summary.query("missing_bin != '0'"), values = 'num_missing', 
+                                  margins=True, margins_name='Total Missing',
+                                  index = 'missing_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
+    display_all(df_miss_res3)
+    print("\n")
+
+    print('4. Data Type -- Summary of Variables with missing values')
+    df_miss_res4 = pd.pivot_table(data = df_summary.query("missing_bin != '0'"), values = 'num_missing', 
+                                  margins=True, margins_name='Total Missing',
+                                  index = 'missing_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
+    display_all(df_miss_res4)
    
 #### -------- Numerical Variables ------- #####
 ###############################################
@@ -245,6 +368,64 @@ def numerical_variable_detail(df, variable, model = None, target=None, threshold
             print ("Can't compute Yeo Johnson transformation")
 
         
+def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
+    """
+    This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation
+    IQR is defined as quartile_3 - quartile_1
+    lower_bound = quartile_1 - tolerance_value * IQR
+    upper_bound = quartile_3 + tolerance_value * IQR
+    
+    Parameters:
+    -----------
+        df : dataframe
+            dataset on which you are working on
+        variables: list type, optional 
+            list of all the numeric variables. 
+            if not provided then it automatically identifies the numeric variables and analyzes for them
+        tol : float, default 1.5
+            tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
+        
+    Returns:
+    --------
+        Dataframe
+            dataframe with variables that contain outliers
+    """
+    
+    outlier_dict = {}
+    
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns
+        if print_vars:
+            print(variables)
+        
+    else:
+        variables = variables
+        if print_vars:
+            print(variables)
+        
+    for var in variables:
+        s = df.loc[df[var].notnull(), var]
+        
+        quartile_1, quartile_3 = np.percentile(s, [25,75])
+        iqr = quartile_3 - quartile_1
+        lower_bound = quartile_1 - tol*iqr
+        upper_bound = quartile_3 + tol*iqr
+        
+        lower_bound_outlier = np.sum(s<lower_bound)
+        upper_bound_outlier = np.sum(s>upper_bound)
+        #if lower_bound_outlier >0 or upper_bound_outlier>0:
+        outlier_dict[var] = {'lower_bound_outliers': lower_bound_outlier, 
+                                 'upper_bound_outliers' : upper_bound_outlier,
+                                 'total_outliers' : lower_bound_outlier+upper_bound_outlier} 
+    
+    outlier_df = pd.DataFrame(data = outlier_dict).transpose()
+    outlier_df = outlier_df.sort_values(by='total_outliers' , ascending = False)
+    outlier_df['perc_outliers'] = (outlier_df['total_outliers'] / len(df)).mul(100)
+    
+    return outlier_df
+
+
 def numerical_plots(df, variables, normality_check = False):
     """
     This function generates the univariate plot for the all the variables in the input variables list. 
@@ -376,63 +557,6 @@ def numerical_plots_with_target(df, variables, target, model):
 
 
         
-
-def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
-    """
-    This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation
-    IQR is defined as quartile_3 - quartile_1
-    lower_bound = quartile_1 - tolerance_value * IQR
-    upper_bound = quartile_3 + tolerance_value * IQR
-    
-    Parameters:
-    -----------
-        df : dataframe
-            dataset on which you are working on
-        variables: list type, optional 
-            list of all the numeric variables. 
-            if not provided then it automatically identifies the numeric variables and analyzes for them
-        tol : float, default 1.5
-            tolerance value(default value = 1.5) Usually it is used as 1.5 or 3
-        
-    Returns:
-    --------
-        Dataframe
-            dataframe with variables that contain outliers
-    """
-    
-    outlier_dict = {}
-    
-    if variables == None:
-        #variables = df.select_dtypes(include = ['int', 'float']).columns
-        variables = df.select_dtypes(exclude = ['object']).columns
-        if print_vars:
-            print(variables)
-        
-    else:
-        variables = variables
-        if print_vars:
-            print(variables)
-        
-    for var in variables:
-        s = df.loc[df[var].notnull(), var]
-        
-        quartile_1, quartile_3 = np.percentile(s, [25,75])
-        iqr = quartile_3 - quartile_1
-        lower_bound = quartile_1 - tol*iqr
-        upper_bound = quartile_3 + tol*iqr
-        
-        lower_bound_outlier = np.sum(s<lower_bound)
-        upper_bound_outlier = np.sum(s>upper_bound)
-        #if lower_bound_outlier >0 or upper_bound_outlier>0:
-        outlier_dict[var] = {'lower_bound_outliers': lower_bound_outlier, 
-                                 'upper_bound_outliers' : upper_bound_outlier,
-                                 'total_outliers' : lower_bound_outlier+upper_bound_outlier} 
-    
-    outlier_df = pd.DataFrame(data = outlier_dict).transpose()
-    outlier_df = outlier_df.sort_values(by='total_outliers' , ascending = False)
-    outlier_df['perc_outliers'] = (outlier_df['total_outliers'] / len(df)).mul(100)
-    
-    return outlier_df
 
 
 def numerical_bins_with_target (df, variables, target, model='clf', create_buckets = True, method='5p', custom_buckets=None):
@@ -676,7 +800,7 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
         
 
 
-def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf', add_missing = True, rare_tol1=5, rare_tol2=10):
+def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 'overall', model = 'clf', add_missing = True, rare_tol1=5, rare_tol2=10):
     """
     Useful for deciding what percentage of rare encoding would be useful
     Parameters:
@@ -684,6 +808,9 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
         df : Dataframe for which Analysis to be performed
         variables : input type list. All the categorical variables needed for plotting
         target : Target variable
+        event_rate : 'str', Default 'overall'
+            'overall' - if overall event rate needs to be visualized
+            'within' - if within category event rate needs to be visualized
         model : type of problem - classification or regression
                 For classification related analysis. use 'classification' or 'clf'
                 For regression related analysis. use 'regression' or 'reg'
@@ -718,7 +845,11 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
 
             
             title1 = f'As Is Distribution of {var}'
-            plot_categories_within_eventrate(plot_df, var, target, cat_order, title = title1, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+            if event_rate == 'within':
+                plot_categories_within_eventrate(plot_df, var, target, cat_order, title = title1, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+
+            if event_rate == 'overall':
+                plot_categories_overall_eventrate(plot_df, var, target, cat_order, title = title1, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
 
             # 2nd plot after combining categories less than 5% 
@@ -734,7 +865,11 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
                 cat_order = list(plot_df_tol1[var])
 
                 title2 = f'Distribution of {var} after combining categories less than {rare_tol1}%'
-                plot_categories_within_eventrate(plot_df_tol1, var, target, cat_order, title = title2, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+                if event_rate == 'within':
+                    plot_categories_within_eventrate(plot_df_tol1, var, target, cat_order, title = title2, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+
+                if event_rate == 'overall':
+                    plot_categories_overall_eventrate(plot_df_tol1, var, target, cat_order, title = title2, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
 
             # 3nd plot after combining categories less than 10% 
@@ -750,7 +885,11 @@ def  categorical_plots_with_rare_and_target(df, variables, target, model = 'clf'
                 cat_order = list(plot_df_tol2[var])
 
                 title3 = f'Distribution of {var} after combining categories less than {rare_tol2}%'
-                plot_categories_within_eventrate(plot_df_tol2, var, target, cat_order, title = title3, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+                if event_rate == 'within':
+                    plot_categories_within_eventrate(plot_df_tol2, var, target, cat_order, title = title3, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
+
+                if event_rate == 'overall':
+                    plot_categories_overall_eventrate(plot_df_tol2, var, target, cat_order, title = title3, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
 
 

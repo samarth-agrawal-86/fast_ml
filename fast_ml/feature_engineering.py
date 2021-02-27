@@ -57,6 +57,8 @@ class FeatureEngineering_Numerical:
 
         '''
         #fe_df = df.copy()
+        df = df.copy()
+
         self.param_dict_ ={}
         
         if self.method == '5p':
@@ -101,7 +103,8 @@ class FeatureEngineering_Numerical:
             df : dataframe 
                 dataframe with binned numerical variables
         '''
-        
+        df = df.copy()
+
         if self.method in ('5p', '10p', '20p', '25p', '95p', '98p', 'custom'):
             for var, binner in self.param_dict_.items():
                 df[var] = pd.cut(df[var], bins = binner, include_lowest=True)
@@ -163,6 +166,7 @@ class FeatureEngineering_Categorical:
         self.rare_tol = rare_tol
         self.param_dict_ = {}
         self.variables = variables
+        df = df.copy()
 
         #Convert to 'Object' type
         for var in self.variables:
@@ -250,6 +254,8 @@ class FeatureEngineering_Categorical:
             dataframe with all the variables encoded
         '''
         
+        df = df.copy()
+
         # Convert to object type
         for var in self.variables:
             df[var] = df[var].astype('object')
@@ -323,6 +329,8 @@ class FeatureEngineering_DateTime:
         -----------
 
         '''
+        df = df.copy()
+
         self.datetime_variables = datetime_variables
         self.prefix = prefix
         self.param_dict_ = "No Parameter dictionary needed for this. Use transform() method"
@@ -342,6 +350,7 @@ class FeatureEngineering_DateTime:
                 Transformed dataframe with all the additional features
 
         '''
+        df = df.copy()
 
         for var in self.datetime_variables:
 

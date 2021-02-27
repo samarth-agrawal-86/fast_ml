@@ -11,7 +11,7 @@ URL = "https://github.com/samarth-agrawal-86/fast_ml"
 
 setup(
 		name = 'fast_ml',
-		version = 3.12,
+		version = 3.39,
 		description = desc,
 		long_description = long_description,
 		long_description_content_type = "text/markdown",	

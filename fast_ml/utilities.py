@@ -100,7 +100,7 @@ def get_plot_df(eda_df, var, target):
 
     return plot_df
 
-def plot_categories_overall_eventrate(plot_df, var, target, cat_order, rare_tol1 = None, rare_tol2 = None):
+def plot_categories_overall_eventrate(plot_df, var, target, cat_order, title=None, rare_tol1 = None, rare_tol2 = None):
 
     if len(plot_df)>15: text_x = plot_df.index[-4]
     elif len(plot_df)>8: text_x = plot_df.index[-3]
@@ -113,7 +113,13 @@ def plot_categories_overall_eventrate(plot_df, var, target, cat_order, rare_tol1
 
     ax2 = ax.twinx()
     ax2 = sns.pointplot(data = plot_df, x=var, y='target_1_perc_overall', order = cat_order, color='black')
-    ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var}) Bins', fontsize=17)
+    if title:
+        ax.set_title(title, fontsize=17)
+    else:
+        ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var}) Bins', fontsize=17)
+    ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+
+    
     #ax.set_xlabel(var, fontsize=14)
     ax.set_ylabel('Perc of Categories', fontsize=14)
     ax2.set_ylabel("Perc of Events across all Categories", fontsize=14)

@@ -57,8 +57,12 @@ train = pd.read_csv('train.csv')
 summary_df = eda.df_summary(train)
 display_all(summary_df)
 ```
-1. **eda.df_summary**(*df*)
+1. **eda.df_info**(*df*)
     * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent
+2. **eda.df_cardinality_info**(*df, raw_data = True*)
+    * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent
+3. **eda.df_missing_info**(*df, raw_data = True*)
+    * Returns a dataframe with useful summary - variables, datatype, number of unique values, sample of unique values, missing count, missing percent   
 
 ### 2.2) Numerical Variables
 ```python

@@ -9,6 +9,10 @@ from IPython.display import Markdown, display
 def printmd(string):
     display(Markdown(string))
 
+def display_all(df):
+    with pd.option_context('display.max_rows', 2000, 'display.max_columns', 1000):
+        display(df)
+        
     
 def normality_diagnostic (s, var):
     fig, ax = plt.subplots(figsize=(16,4))
@@ -117,7 +121,7 @@ def plot_categories_overall_eventrate(plot_df, var, target, cat_order, title=Non
         ax.set_title(title, fontsize=17)
     else:
         ax.set_title(f'Event rate of target ({target}) across all categories of variable ({var}) Bins', fontsize=17)
-    ax2.set_ylabel("Perc of Events within Category", fontsize=14)
+
 
     
     #ax.set_xlabel(var, fontsize=14)
@@ -246,9 +250,7 @@ def  plot_target_with_categories (df, c, target):
     plt.show()
     
 
-def display_all(df):
-    with pd.option_context('display.max_rows', 1000, 'display.max_columns', 1000):
-        display(df)
+
 
         
 def rare_encoding(df, variables, rare_tol = 0.05):
@@ -262,7 +264,7 @@ def rare_encoding(df, variables, rare_tol = 0.05):
 
 
 
-def reduce_memory_usage(df, convert_to_category = False):
+def reduce_memory_usage(df, convert_to_category = False, verbose=False):
     """ 
         iterate through all the columns of a dataframe and modify the data type
         to reduce memory usage.        
@@ -275,13 +277,15 @@ def reduce_memory_usage(df, convert_to_category = False):
         ----------
             df : dataframe which needs to be optimized
             convert_to_category : 'True' , 'False'. (default value = False) If true it will convert all 'object' type variables as category type. 
+            verbose: 'str'. default =False. If True it will print the before and after memory usage by the dataframe
 
         Returns:
         --------
             df : returns the reduced dataframe
     """
-    start_mem = df.memory_usage().sum() / 1024**2
-    print('Memory usage of dataframe is {:.2f} MB'.format(start_mem))
+    if verbose:
+        start_mem = df.memory_usage().sum() / 1024**2
+        print('Memory usage of dataframe is {:.2f} MB'.format(start_mem))
     
     for col in df.columns:
         col_type = df[col].dtype
@@ -311,8 +315,9 @@ def reduce_memory_usage(df, convert_to_category = False):
             else:
                 None
 
-    end_mem = df.memory_usage().sum() / 1024**2
-    print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
-    print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
+    if verbose:
+        end_mem = df.memory_usage().sum() / 1024**2
+        print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
+        print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
     
     return df

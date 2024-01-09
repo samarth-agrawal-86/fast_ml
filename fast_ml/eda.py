@@ -7,10 +7,15 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import Markdown, display
-from fast_ml.utilities import printmd , display_all, normality_diagnostic , plot_categories , \
+from fast_ml.utilities import printmd , normality_diagnostic , plot_categories , \
 plot_categories_with_target , calculate_mean_target_per_category , plot_target_with_categories, \
 get_plot_df, plot_categories_overall_eventrate, plot_categories_within_eventrate
 
+
+
+################################################################################
+#                                     OVERALL
+################################################################################
 
 def df_info(df):
     """
@@ -49,7 +54,87 @@ def df_info(df):
         x = str(x)
         if search("int|float", x) : return 'Numerical'
         elif search("object", x) : return 'Categorical'
+        elif search("datetime", x) : return 'DateTime'
         else: return x
+    
+    info_df['data_type_grp'] = info_df['data_type'].apply(data_type_grp)
+    info_df = info_df[['data_type', 'data_type_grp', 'num_unique_values', 'sample_unique_values','num_missing', 'perc_missing']]
+    
+    
+    return info_df
+
+def df_cardinality_info(df, raw_data = False):
+    """
+    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
+    by data_type and data_type_grp
+        
+
+    Parameters:
+    ----------
+        df : dataframe for analysis
+        raw_data: str, default 'False'. if summary df is passed then this flag is kept false.
+            If original dataframe is passed then this flag is set to True
+
+    Returns:
+    --------
+        df : returns 2 dataframes that contains Summary of variables cardinality by data type and data type groups
+    """
+
+    if raw_data: df_summary = df_info(df)
+    else : df_summary = df
+
+    def cardinality_check(x):
+        if x == 0 : return '0.  0'
+        elif x >0 and x<=10 : return  '1. (0  -- 10]'
+        elif x >10 and x<=20 : return '2. (10 -- 20]'
+        elif x >20 and x<=30 : return '3. (20 -- 30]'
+        elif x >30 and x<=40 : return '4. (30 -- 40]'
+        elif x >40 and x<=50 : return '5. (40 -- 50]'
+        elif x >50 and x<=100 : return '6. (90 -- 100]'
+        elif x >100 and x<=200 : return '7. (100 -- 200]'
+        elif x >200 and x<=500 : return '8. (200 -- 500]'
+        elif x >500 and x<=1000 : return '9. (500 -- 1000]'
+        elif x >1000: return '99. 1000+'
+
+    df_summary['cardinality_bin'] = df_summary['num_unique_values'].apply(cardinality_check)
+
+    printmd ('**Check for Variables Cardinality**') 
+    print()  
+    printmd ('<u>1) By Data Type Groups</u>')  
+    info_pivot1 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
+                              margins=True, margins_name='Total',
+                              index = 'cardinality_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
+    display(info_pivot1)
+    print("\n\n")
+    
+    printmd ('<u>2) By Data Type</u>')   
+    info_pivot2 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
+                              margins=True, margins_name='Total',
+                              index = 'cardinality_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
+    display(info_pivot2)
+
+
+def df_missing_info(df, raw_data = False):
+    """
+    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
+    by data_type and data_type_grp
+        
+
+    Parameters:
+    ----------
+        df : dataframe for analysis
+        raw_data: str, default 'False'. 
+            If summary df is passed then this flag is kept false.
+            If original dataframe is passed then this flag is set to True
+
+    Returns:
+    --------
+        returns 2 dataframes that contains Summary of variables without missing values by data type and data type groups
+        returns 2 dataframes that contains Summary of variables with missing values by data type and data type groups
+    """
+
+    if raw_data: df_summary = df_info(df)
+    else : df_summary = df
     
     def missing_bin(x):
         if x ==0 : return '0'
@@ -64,86 +149,18 @@ def df_info(df):
         elif x >80 and x<=90 : return '(80 -- 90]'
         elif x >90 and x<100 : return '(90 -- 100]'
         elif x ==100: return '100'
-    
-    def cardinality_check(x):
-        if x == 0 : return '0.  0'
-        elif x >0 and x<=10 : return  '1. (0  -- 10]'
-        elif x >10 and x<=20 : return '2. (10 -- 20]'
-        elif x >20 and x<=30 : return '3. (20 -- 30]'
-        elif x >30 and x<=40 : return '4. (30 -- 40]'
-        elif x >40 and x<=50 : return '5. (40 -- 50]'
-        elif x >50 and x<=100 : return '6. (90 -- 100]'
-        elif x >100 and x<=200 : return '7. (100 -- 200]'
-        elif x >200 and x<=500 : return '8. (200 -- 500]'
-        elif x >500 and x<=1000 : return '9. (500 -- 1000]'
-        elif x >1000: return '99. 1000+'
-    
-    info_df['data_type_grp'] = info_df['data_type'].apply(data_type_grp)
-    info_df['missing_bin'] = info_df['perc_missing'].apply(missing_bin)
-    info_df['cardinality_bin'] = info_df['num_unique_values'].apply(cardinality_check)
-    
-    return info_df
 
-def df_cardinality_info(df, raw_data = True):
-    """
-    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
-    by data_type and data_type_grp
-        
+    df_summary['missing_bin'] = df_summary['perc_missing'].apply(missing_bin)
 
-    Parameters:
-    ----------
-        df : dataframe for analysis
-
-    Returns:
-    --------
-        df : returns 2 dataframes that contains Summary of variables cardinality by data type and data type groups
-    """
-
-    if raw_data: df_summary = df_info(df)
-    else : df_summary = df
-        
-    print('1. Data Type Groups -- Summary of Variables Cardinality')
-    info_pivot1 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
-                              margins=True, margins_name='Total',
-                              index = 'cardinality_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
-    display(info_pivot1)
-    print("\n\n")
-    
-    print('2. Data Type -- Summary of Variables Cardinality')
-    info_pivot2 = pd.pivot_table(data = df_summary, values = 'num_unique_values', 
-                              margins=True, margins_name='Total',
-                              index = 'cardinality_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
-    display(info_pivot2)
-
-
-def df_missing_info(df, raw_data = True):
-    """
-    In the function all the distinct values of variable is grouped into various bins and generates 2 outputs
-    by data_type and data_type_grp
-        
-
-    Parameters:
-    ----------
-        df : dataframe for analysis
-
-    Returns:
-    --------
-        returns 2 dataframes that contains Summary of variables without missing values by data type and data type groups
-        returns 2 dataframes that contains Summary of variables with missing values by data type and data type groups
-    """
-
-    if raw_data: df_summary = df_info(df)
-    else : df_summary = df
-        
-    
-    print('1. Data Type Groups -- Summary of Variables without missing values')
+    printmd ('**I. Variables WITHOUT missing values**') 
+    printmd ('<u>1) By Data Type Group</u>')
     df_miss_res1 = pd.pivot_table(data = df_summary.query("missing_bin == '0'"), values = 'num_missing', 
                                   margins=True, margins_name='Total Non Missing',
                                   index = 'missing_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
     display_all(df_miss_res1)
     print("\n")
 
-    print('2. Data Type -- Summary of Variables without missing values')
+    printmd ('<u>2) By Data Type</u>')
     df_miss_res2 = pd.pivot_table(data = df_summary.query("missing_bin == '0'"), values = 'num_missing', 
                                   margins=True, margins_name='Total Non Missing',
                                   index = 'missing_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
@@ -152,21 +169,24 @@ def df_missing_info(df, raw_data = True):
     display_all(df_miss_res2)
     print("\n\n")
 
-    print('3. Data Type Groups -- Summary of Variables with missing values')
+    printmd ('**II. Variables WITH missing values**') 
+    printmd ('<u>1) By Data Type Group</u>')
     df_miss_res3 = pd.pivot_table(data = df_summary.query("missing_bin != '0'"), values = 'num_missing', 
                                   margins=True, margins_name='Total Missing',
                                   index = 'missing_bin', columns = ['data_type_grp'], fill_value=0, aggfunc='count')
     display_all(df_miss_res3)
     print("\n")
 
-    print('4. Data Type -- Summary of Variables with missing values')
+    printmd ('<u>2) By Data Type</u>')
     df_miss_res4 = pd.pivot_table(data = df_summary.query("missing_bin != '0'"), values = 'num_missing', 
                                   margins=True, margins_name='Total Missing',
                                   index = 'missing_bin', columns = ['data_type'], fill_value=0, aggfunc='count')
     display_all(df_miss_res4)
    
-#### -------- Numerical Variables ------- #####
-###############################################
+
+################################################################################
+#                              NUMERICAL VARIABLES
+################################################################################
 
 def numerical_describe(df, variables=None, method='10p'):
     '''
@@ -200,7 +220,7 @@ def numerical_describe(df, variables=None, method='10p'):
     spread_stats.drop(columns = ['min', 'max'], inplace=True)
     return spread_stats
     
-def numerical_variable_detail(df, variable, model = None, target=None, threshold = 20):
+def numerical_variable_detail(df, variable, model_type = None, target=None, threshold = 20):
     """
     This provides basic EDA of the Numerical variable passed,
         - Basic Statistics like Count, Data Type, min, max, mean, median, etc., 
@@ -215,7 +235,7 @@ def numerical_variable_detail(df, variable, model = None, target=None, threshold
     ----------
         df : Dataframe for which Analysis to be performed
         variable: Pass the Numerical variable for which EDA is required
-        model : type of problem - classification or regression
+        model_type : type of problem - classification or regression
             For classification related analysis. use 'classification' or 'clf'
             For regression related analysis. use 'regression' or 'reg'
         target : Define the target variable, if you want to see the relationship between given list of varaible with Target variable, default None
@@ -303,7 +323,7 @@ def numerical_variable_detail(df, variable, model = None, target=None, threshold
         
         printmd ('**<u>Bivariate plots: Relationship with Target Variable:</u>**')
         if target :
-            if model == 'classification' or model == 'clf':
+            if model_type == 'classification' or model_type == 'clf':
                 plt.figure(figsize = (16, 4))
                 plt.subplot(1, 2, 1)
                 sns.boxplot(x=eda_df[target], y=c, data=eda_df)
@@ -368,6 +388,318 @@ def numerical_variable_detail(df, variable, model = None, target=None, threshold
             print ("Can't compute Yeo Johnson transformation")
 
         
+
+
+
+def numerical_plots(df, variables, bins=20, normality_check = False):
+    """
+    This function generates the univariate plot for the all the variables in the input variables list. 
+    normality check and kde plot is optional
+
+    Parameters:
+    -----------
+        df : dataframe
+            Dataframe for which Analysis to be performed
+        variables : list type, optional
+            All the Numerical variables needed for plotting
+            if not provided then it automatically identifies the numeric variables and analyzes for them
+        normality_check: 'True' or 'False'
+            if True: then it will plot the Q-Q plot and kde plot for the variable
+            if False: just plot the histogram of the variable
+
+    Returns:
+    --------
+        Numerical plots for all the variables
+
+    """
+    eda_df = df.copy(deep=True)
+    length_df = len(eda_df)
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns        
+    else:
+        variables = variables
+
+    if normality_check==True:
+        for i, var in enumerate(variables, 1):
+            
+            printmd (f'**{i}. Plot for {var}**')
+            try:
+                s = eda_df[var]
+                fig, ax = plt.subplots(figsize=(16,4))
+
+                ax1 = plt.subplot(1,2,1)
+                aax1 = sns.histplot(eda_df, x=var, bins=bins, kde = True)
+                ax1.set_title('Histogram', fontsize=17)
+                ax1.set_xlabel(var, fontsize=14)
+                ax1.set_ylabel('Count', fontsize=14)
+
+                ax2 = plt.subplot(1,2,2)
+                stats.probplot(s, dist="norm", plot=plt)
+                plt.title('Probability Plot', fontsize=17)
+                plt.xlabel('Theoretical Quantiles', fontsize=14)
+                plt.ylabel('RM Quantiles', fontsize=14)
+                plt.show()
+
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
+    if normality_check==False:
+        for i, var in enumerate(variables, 1):
+            
+            printmd (f'**{i}. Plot for {var}**')
+            try:
+                s = eda_df[var]
+
+                plt.figure(figsize = (12, 4))
+                ax1 = sns.histplot(eda_df, x=var, bins=bins, kde = True)
+                ax1.set_title('Histogram', fontsize=17)
+                ax1.set_xlabel(var, fontsize=14)
+                ax1.set_ylabel('Count', fontsize=14)
+                plt.show()
+
+            except:
+                print(f"Plot for variable : {var} can't be plotted")
+
+
+
+
+
+    
+def numerical_plots_with_target(df, variables, target, model_type):
+    """
+    This function generates the bi-variate plot for the all the variables in the input variables list with the target
+
+    Parameters:
+    -----------
+        df : dataframe
+            Dataframe for which Analysis to be performed
+        variables : list type, optional
+            All the Numerical variables needed for plotting
+            if not provided then it automatically identifies the numeric variables and analyzes for them
+        target : str
+            Target variable
+        model_type : str, default 'clf'
+            'classification' or 'clf' for classification related analysis 
+            'regression' or 'reg' for regression related analysis
+        
+
+    Returns:
+    --------
+        Numerical plots for all the variables
+
+    """
+    eda_df = df.copy(deep=True)
+    length_df = len(eda_df)
+    if variables == None:
+        #variables = df.select_dtypes(include = ['int', 'float']).columns
+        variables = df.select_dtypes(exclude = ['object']).columns        
+    else:
+        variables = variables
+
+    if target in variables: variables.remove(target)
+
+    if model_type == 'classification' or model_type == 'clf':
+
+        for i, var in enumerate(variables, 1):
+
+            try:
+                printmd (f'**{i}. Plot for {var}**')
+                plt.figure(figsize = (16, 4))
+                ax1 = plt.subplot(1, 2, 1)
+                ax1 = sns.boxplot(x=eda_df[target], y=var, data=eda_df)
+                ax1.set_title('Box Plot', fontsize=17)
+                ax1.set_xlabel(f'Target Variable ({target})', fontsize=14)
+                ax1.set_ylabel(var, fontsize=14)
+
+                ax2 = plt.subplot(1, 2, 2)
+                ax2 = sns.distplot(eda_df[eda_df[target] == 1][var], hist=False, label='Target=1')
+                ax2 = sns.distplot(eda_df[eda_df[target] == 0][var], hist=False, label='Target=0')
+                ax2.set_title('KDE Plot', fontsize=17)
+                ax2.set_xlabel(var, fontsize=14)
+                plt.show()
+
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
+    if model_type == 'regression' or model_type == 'reg':
+        for i, var in enumerate(variables, 1):
+            try:
+                print (f'{i}. Plot for {var}')
+                plt.figure(figsize = (10, 4))
+                ax = sns.regplot(data = eda_df, x = var, y=target)
+                ax.set_title(f'Scatter Plot bw variable ({var}) and target ({target})', fontsize=17)
+                ax.set_xlabel(var, fontsize=14)
+                ax.set_ylabel(target, fontsize=14)
+                plt.show()
+            except:
+                print(f"Plots for variable : {var} can't be plotted")
+
+
+        
+
+
+def numerical_bins_with_target (df, variables, target, model_type='clf', sort_by='category', show_spread=True, create_buckets = True, method='5p', custom_buckets=None):
+    """
+    Plot the bins for numerical variables
+
+    Various default methods can be used for binning. Or custom bucket can be provided
+
+
+    Parameters:
+    -----------
+        df : dataframe
+        variables : list type
+        target : string
+        model_type : string, default 'clf'
+            'classification' or 'clf' for classification related analysis 
+            'regression' or 'reg' for regression related analysis
+        sorty_by: str, default 'category' {'category', 'mean', 'perc'}
+            'category' : if x index to be sorted by the variable
+            'mean' : if x index to be sorted by the mean value of the target variable in descending order
+            'perc' : if x index to be sorted by the percentage value of the bin in descending order
+        show_spread: bool, default 'False'. Useful when you want to see the spread of the variable as well
+        create_buckets : bool, default True
+        method : string, default '5p'
+            '2p'  : [0,2,4,6,8,10,12.....90,92,94,96,98,100]
+            '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+            '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            '20p' : [0, 20, 40, 60, 80, 100]
+            '25p' : [0, 25, 50, 75, 100]
+            '95p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+            '98p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+            'custom' : Custom list
+        custom_buckets : list type, default None
+            Has to be provided compulsorily if 'custom' method is used 
+
+    """
+
+    if create_buckets:
+
+        if method =='2p' :
+            buckets = list(range(0,101,2))
+        if method == '5p':
+            buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+        elif method == '10p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        elif method == '20p':
+            buckets = [0, 20, 40, 60, 80, 100]
+        elif method == '25p':
+            buckets = [0, 25, 50, 75, 100]
+        elif method == '95p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        elif method == '98p':
+            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
+        elif method == 'custom':
+            buckets = custom_buckets
+
+    
+    eda_df = df.copy()
+    if target in variables: variables.remove(target)
+
+    if model_type in('clf', 'classification'):
+        for i, var in enumerate(variables, 1):
+
+            printmd (f'**{i}. Plot for {var}**')
+
+            if create_buckets:
+                s = eda_df[var].dropna()
+                
+                spread_stats = s.describe(percentiles = np.array(buckets)/100).to_frame().T
+                
+                if 50 not in buckets:
+                    spread_stats.drop(columns = ['min', 'max', '50%'], inplace=True)
+                else:
+                    spread_stats.drop(columns = ['min', 'max'], inplace=True)
+                
+                if show_spread:
+                    print(f'Spread Statistics for {var} :')
+                    display_all(spread_stats)
+
+                bins = sorted(set(list(np.percentile(s, buckets))))
+                eda_df[var] = pd.cut(s, bins = bins, include_lowest=True)
+                eda_df[var] = eda_df[var].astype('object')
+                eda_df[var].fillna('Missing', inplace = True)
+
+            plot_df = pd.crosstab(eda_df[var], eda_df[target])
+            cat_order = (plot_df.index)
+            plot_df = plot_df.reset_index()
+            plot_df.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
+            plot_df['total'] = plot_df['target_0'] + plot_df['target_1']
+            plot_df['total_perc'] = 100*plot_df['total']/sum(plot_df['total'])
+            plot_df['target_1_perc_overall'] = 100*plot_df['target_1']/sum(plot_df['target_1'])
+            plot_df['target_1_perc_within'] = 100*plot_df['target_1']/( plot_df['target_0'] + plot_df['target_1'])
+
+            # Graph 1
+            plot_categories_overall_eventrate(plot_df, var, target, cat_order)
+
+            # Graph 2
+            plot_categories_within_eventrate(plot_df, var, target, cat_order)
+
+    if model_type in('reg', 'regression'):
+        for i, var in enumerate(variables, 1):
+
+            printmd (f'**{i}. Plot for {var}**')
+
+            if create_buckets:
+                s = eda_df[var].dropna()
+                
+                spread_stats = s.describe(percentiles = np.array(buckets)/100).to_frame().T
+                
+                if 50 not in buckets:
+                    spread_stats.drop(columns = ['min', 'max', '50%'], inplace=True)
+                else:
+                    spread_stats.drop(columns = ['min', 'max'], inplace=True)
+                
+                if show_spread:
+                    print(f'Spread Statistics for {var} :')
+                    display_all(spread_stats)
+
+                bins = sorted(set(list(np.percentile(s, buckets))))
+                eda_df[var] = pd.cut(s, bins = bins, include_lowest=True)
+                eda_df[var] = eda_df[var].astype('object')
+                eda_df[var].fillna('Missing', inplace = True)
+
+            plot_df = eda_df.groupby(var)[target].agg(['count', 'mean'])
+            plot_df.rename(columns = {'mean': 'mean_value'}, inplace=True)
+            plot_df.reset_index(inplace=True)
+            plot_df[var]= plot_df[var].astype('object')
+            plot_df['perc'] = round(100*plot_df['count']/plot_df['count'].sum(),0)
+
+            if sort_by == 'category':
+                plot_df = plot_df
+            elif sort_by == 'perc':
+                plot_df.sort_values(by='perc', ascending=False, inplace=True)
+            elif sort_by == 'mean':
+                plot_df.sort_values(by='mean_value', ascending=False, inplace=True)
+
+            plot_df.reset_index(drop=True, inplace=True)
+            cat_order = list(plot_df[var])
+
+            fig, ax = plt.subplots(figsize = (14,6))
+            plt.xticks(ticks = plot_df.index, labels = cat_order, rotation=90)
+            ax1 = sns.barplot(data = plot_df, x = var, y='perc', color = 'lightgrey')
+
+            ax2 = ax.twinx()
+            ax2 = sns.pointplot(data = plot_df, x = var, y='mean_value', color='black')
+
+            ax1.set_xlabel(var, fontsize=14)
+            ax1.set_ylabel("Bins Percentage", fontsize=14)
+            ax2.set_ylabel(f"Mean value of {target}", fontsize=14)
+
+            for pt in range(0, plot_df.shape[0]):
+                ax1.text(x=plot_df.index[pt]-0.12, 
+                         y=plot_df.perc[pt]+0.2, 
+                         s=str(int(plot_df.perc[pt]))+'%',
+                         fontdict={'size':8, 'color':'grey'})
+                
+                ax2.text(x=plot_df.index[pt]+0.08, 
+                         y=plot_df.mean_value[pt]+0.04, 
+                         s=int(plot_df.mean_value[pt]), 
+                         fontdict={'size':8, 'color':'black'})
+            plt.show()
+
+
 def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
     """
     This functions checks for outliers in the dataset using the Inter Quartile Range (IQR) calculation
@@ -425,233 +757,6 @@ def numerical_check_outliers(df, variables=None, tol=1.5, print_vars = False):
     
     return outlier_df
 
-
-def numerical_plots(df, variables, normality_check = False):
-    """
-    This function generates the univariate plot for the all the variables in the input variables list. 
-    normality check and kde plot is optional
-
-    Parameters:
-    -----------
-        df : dataframe
-            Dataframe for which Analysis to be performed
-        variables : list type, optional
-            All the Numerical variables needed for plotting
-            if not provided then it automatically identifies the numeric variables and analyzes for them
-        normality_check: 'True' or 'False'
-            if True: then it will plot the Q-Q plot and kde plot for the variable
-            if False: just plot the histogram of the variable
-
-    Returns:
-    --------
-        Numerical plots for all the variables
-
-    """
-    eda_df = df.copy(deep=True)
-    length_df = len(eda_df)
-    if variables == None:
-        #variables = df.select_dtypes(include = ['int', 'float']).columns
-        variables = df.select_dtypes(exclude = ['object']).columns        
-    else:
-        variables = variables
-
-    if normality_check==True:
-        for i, var in enumerate(variables, 1):
-            
-            try:
-                printmd (f'**<u> {i}. Plot for {var}</u>**')
-                s = eda_df[var]
-                normality_diagnostic(s, var)
-
-            except:
-                print(f"Plots for variable : {var} can't be plotted")
-
-    if normality_check==False:
-        for i, var in enumerate(variables, 1):
-            
-            try:
-                print (f'{i}. Plot for {var}')
-                s = eda_df[var]
-
-                plt.figure(figsize = (12, 4))
-                ax1 = sns.distplot(s, hist = True)
-                ax1.set_title('Histogram', fontsize=17)
-                ax1.set_xlabel(var, fontsize=14)
-                ax1.set_ylabel('Distribution', fontsize=14)
-                plt.show()
-
-            except:
-                print(f"Plots for variable : {var} can't be plotted")
-
-
-
-
-
-    
-def numerical_plots_with_target(df, variables, target, model):
-    """
-    This function generates the bi-variate plot for the all the variables in the input variables list with the target
-
-    Parameters:
-    -----------
-        df : dataframe
-            Dataframe for which Analysis to be performed
-        variables : list type, optional
-            All the Numerical variables needed for plotting
-            if not provided then it automatically identifies the numeric variables and analyzes for them
-        target : str
-            Target variable
-        model : str, default 'clf'
-            'classification' or 'clf' for classification related analysis 
-            'regression' or 'reg' for regression related analysis
-        
-
-    Returns:
-    --------
-        Numerical plots for all the variables
-
-    """
-    eda_df = df.copy(deep=True)
-    length_df = len(eda_df)
-    if variables == None:
-        #variables = df.select_dtypes(include = ['int', 'float']).columns
-        variables = df.select_dtypes(exclude = ['object']).columns        
-    else:
-        variables = variables
-
-    if model == 'classification' or model == 'clf':
-
-        for i, var in enumerate(variables, 1):
-
-            try:
-                printmd (f'**<u> {i}. Plot for {var}</u>**')
-                plt.figure(figsize = (16, 4))
-                ax1 = plt.subplot(1, 2, 1)
-                ax1 = sns.boxplot(x=eda_df[target], y=var, data=eda_df)
-                ax1.set_title('Box Plot', fontsize=17)
-                ax1.set_xlabel(f'Target Variable ({target})', fontsize=14)
-                ax1.set_ylabel(var, fontsize=14)
-
-                ax2 = plt.subplot(1, 2, 2)
-                ax2 = sns.distplot(eda_df[eda_df[target] == 1][var], hist=False, label='Target=1')
-                ax2 = sns.distplot(eda_df[eda_df[target] == 0][var], hist=False, label='Target=0')
-                ax2.set_title('KDE Plot', fontsize=17)
-                ax2.set_xlabel(var, fontsize=14)
-                plt.show()
-
-            except:
-                print(f"Plots for variable : {var} can't be plotted")
-
-    if model == 'regression' or model == 'reg':
-        for i, var in enumerate(variables, 1):
-            try:
-                print (f'{i}. Plot for {var}')
-                plt.figure(figsize = (10, 4))
-                ax = sns.regplot(data = eda_df, x = var, y=target)
-                ax.set_title(f'Scatter Plot bw variable ({var}) and target ({target})', fontsize=17)
-                ax.set_xlabel(var, fontsize=14)
-                ax.set_ylabel(target, fontsize=14)
-                plt.show()
-            except:
-                print(f"Plots for variable : {var} can't be plotted")
-
-
-        
-
-
-def numerical_bins_with_target (df, variables, target, model='clf', create_buckets = True, method='5p', custom_buckets=None):
-    """
-    Plot the bins for numerical variables
-
-    Various default methods can be used for binning. Or custom bucket can be provided
-
-
-    Parameters:
-    -----------
-        df : dataframe
-        variables : list type
-        target : string
-        model : string, default 'clf'
-            'classification' or 'clf' for classification related analysis 
-            'regression' or 'reg' for regression related analysis
-        create_buckets : bool, default True
-        method : string, default '5p'
-            '2p'  : [0,2,4,6,8,10,12.....90,92,94,96,98,100]
-            '5p'  : [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
-            '10p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-            '20p' : [0, 20, 40, 60, 80, 100]
-            '25p' : [0, 25, 50, 75, 100]
-            '95p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
-            '98p' : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
-            'custom' : Custom list
-        custom_buckets : list type, default None
-            Has to be provided compulsorily if 'custom' method is used 
-
-    """
-
-    if create_buckets:
-
-        if method =='2p' :
-            buckets = list(range(0,101,2))
-        if method == '5p':
-            buckets = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
-        elif method == '10p':
-            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-        elif method == '20p':
-            buckets = [0, 20, 40, 60, 80, 100]
-        elif method == '25p':
-            buckets = [0, 25, 50, 75, 100]
-        elif method == '95p':
-            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
-        elif method == '98p':
-            buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 98, 100]
-        elif method == 'custom':
-            buckets = custom_buckets
-
-    
-    eda_df = df.copy()
-    
-    if model in('clf', 'classification'):
-        for i, var in enumerate(variables, 1):
-
-            printmd (f'**<u> {i}. Plot for {var}</u>**')
-
-            if create_buckets:
-                s = eda_df[var].dropna()
-                
-                spread_stats = s.describe(percentiles = np.array(buckets)/100).to_frame().T
-                
-                if 50 not in buckets:
-                    spread_stats.drop(columns = ['min', 'max', '50%'], inplace=True)
-                else:
-                    spread_stats.drop(columns = ['min', 'max'], inplace=True)
-                
-                printmd(f'**Spread Statistics for {var} :')
-                display_all(spread_stats)
-
-                bins = sorted(set(list(np.percentile(s, buckets))))
-                eda_df[var] = pd.cut(s, bins = bins, include_lowest=True)
-                eda_df[var] = eda_df[var].astype('object')
-                eda_df[var].fillna('Missing', inplace = True)
-
-            plot_df = pd.crosstab(eda_df[var], eda_df[target])
-            cat_order = (plot_df.index)
-            plot_df = plot_df.reset_index()
-            plot_df.rename(columns={0:'target_0', 1:'target_1'}, inplace=True)
-            plot_df['total'] = plot_df['target_0'] + plot_df['target_1']
-            plot_df['total_perc'] = 100*plot_df['total']/sum(plot_df['total'])
-            plot_df['target_1_perc_overall'] = 100*plot_df['target_1']/sum(plot_df['target_1'])
-            plot_df['target_1_perc_within'] = 100*plot_df['target_1']/( plot_df['target_0'] + plot_df['target_1'])
-
-            # Graph 1
-            plot_categories_overall_eventrate(plot_df, var, target, cat_order)
-
-            # Graph 2
-            plot_categories_within_eventrate(plot_df, var, target, cat_order)
-
-    if model in ('reg', 'regression'):
-        print("To be Done")
-
 #### -------- Categorical Variables ------- #####
 #################################################
 
@@ -708,7 +813,7 @@ def categorical_plots(df, variables, add_missing = True, add_rare = False, rare_
         plt.show()
 
 
-def  categorical_plots_with_target(df, variables, target, model='clf', add_missing = True,  rare_tol1 = 5, rare_tol2 = 10):
+def  categorical_plots_with_target(df, variables, target, model_type='clf', add_missing = True,  rare_tol1 = 5, rare_tol2 = 10):
     """
     Parameters:
     -----------
@@ -718,7 +823,7 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
             All the categorical variables needed for plotting
         target : str
             Target variable
-        model : str, default 'clf'
+        model_type : str, default 'clf'
             type of problem - classification or regression
                 'classification' or 'clf' for classification related analysis 
                 'regression' or 'reg' for regression related analysis
@@ -744,7 +849,7 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
     else:
         variables = variables
 
-    if model in ('clf', 'classification'):
+    if model_type in ('clf', 'classification'):
 
         for i, var in enumerate(variables, 1):
 
@@ -764,7 +869,7 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
             # Graph:2 to show the mean target value within each category
             plot_categories_within_eventrate(plot_df, var, target, cat_order, rare_tol1 = rare_tol1, rare_tol2 = rare_tol2)
 
-    if model in ('reg', 'regression'):
+    if model_type in ('reg', 'regression'):
 
         for i, var in enumerate(variables, 1):
 
@@ -784,8 +889,17 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
             ax2 = ax.twinx()
             ax2 = sns.pointplot(data = plot_df, x=var, y=target, order = cat_order, color='green')
 
-            ax.axhline(y=rare_tol, color = 'red')
-            ax.axhline(y=rare_tol+5, color = 'darkred')
+            if rare_tol1:
+                ax.axhline(y=rare_tol1, color = 'red', alpha=0.5)
+    
+                # add text for rare line
+                ax.text(0, rare_tol1, "Rare Tol: "+str(rare_tol1)+'%', fontdict = {'size': 8, 'color':'red'})
+
+            if rare_tol2:
+                ax.axhline(y=rare_tol2, color = 'darkred', alpha=0.5)
+    
+                # add text for rare line
+                ax.text(0, rare_tol2, "Rare Tol: "+str(rare_tol2)+'%', fontdict = {'size': 8, 'color':'darkred'})
 
 
             ax.set_title(f'Mean value of target ({target}) within each category of variable ({var})', fontsize=17)
@@ -800,7 +914,7 @@ def  categorical_plots_with_target(df, variables, target, model='clf', add_missi
         
 
 
-def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 'overall', model = 'clf', add_missing = True, rare_tol1=5, rare_tol2=10):
+def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 'overall', model_type = 'clf', add_missing = True, rare_tol1=5, rare_tol2=10):
     """
     Useful for deciding what percentage of rare encoding would be useful
     Parameters:
@@ -811,7 +925,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
         event_rate : 'str', Default 'overall'
             'overall' - if overall event rate needs to be visualized
             'within' - if within category event rate needs to be visualized
-        model : type of problem - classification or regression
+        model_type : type of problem - classification or regression
                 For classification related analysis. use 'classification' or 'clf'
                 For regression related analysis. use 'regression' or 'reg'
         add_missing : default True. if True it will replace missing values by 'Missing'
@@ -830,7 +944,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
         variables = variables
 
 
-    if model in ('clf', 'classification'):
+    if model_type in ('clf', 'classification'):
         for i, var in enumerate(variables, 1):
 
             print (f'{i}. Plot for {var}')
@@ -894,7 +1008,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
 
 
 
-    if model in ('reg', 'regression'):
+    if model_type in ('reg', 'regression'):
 
         for i, var in enumerate(variables, 1):
 
@@ -909,7 +1023,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
             plot_df =  calculate_mean_target_per_category (eda_df, var, target)
             cat_order = list(plot_df[var])
 
-            if model in('clf' or 'classification'):
+            if model_type in('clf' or 'classification'):
                 plot_df[target] = 100*plot_df[target]
 
 
@@ -944,7 +1058,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
                 plot_df_v1 =  calculate_mean_target_per_category (rare_tol1_df, var, target)
                 cat_order = list(plot_df_v1[var])
 
-                if model in('clf' or 'classification'):
+                if model_type in('clf' or 'classification'):
                     plot_df_v1[target] = 100*plot_df_v1[target]
 
                 fig, ax = plt.subplots(figsize=(12,4))
@@ -979,7 +1093,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
             plot_df_v2 =  calculate_mean_target_per_category (rare_tol2_df, var, target)
             cat_order = list(plot_df_v2[var])
 
-            if model in('clf' or 'classification'):
+            if model_type in('clf' or 'classification'):
                 plot_df_v2[target] = 100*plot_df_v2[target]
 
             fig, ax = plt.subplots(figsize=(12,4))
@@ -1003,7 +1117,7 @@ def  categorical_plots_with_rare_and_target(df, variables, target, event_rate = 
 
 
 
-def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
+def  categorical_plots_for_miss_and_freq(df, variables, target, model_type = 'reg'):
     """
     Useful ONLY for Regression Model
     Plots the KDE to check whether frequent category imputation will be suitable
@@ -1013,7 +1127,7 @@ def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
         df : Dataframe for which Analysis to be performed
         variables : input type list. All the categorical variables needed for plotting
         target : Target variable
-        model : type of problem - classification or regression
+        model_type : type of problem - classification or regression
                 For classification related analysis. use 'classification' or 'clf'
                 For regression related analysis. use 'regression' or 'reg'
         
@@ -1030,7 +1144,7 @@ def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
     else:
         variables = variables
 
-    if model in ('reg' , 'regression'):
+    if model_type in ('reg' , 'regression'):
         for i, var in enumerate(variables, 1):
 
             print (f'{i}. Plot for {var}')
@@ -1076,7 +1190,7 @@ def  categorical_plots_for_miss_and_freq(df, variables, target, model = 'reg'):
         print ('ONLY suitable for Regression Models')
 
 
-def categorical_variable_detail(df, variable, model = None, target=None,  rare_tol=5):
+def categorical_variable_detail(df, variable, model_type = None, target=None,  rare_tol=5):
     """
     This function provides EDA for Categorical variable, this includes 
         - Counts
@@ -1094,7 +1208,7 @@ def categorical_variable_detail(df, variable, model = None, target=None,  rare_t
     ----------- 
         df : Dataframe for which Analysis to be performed
         variable: Pass the variable for which EDA is required
-        model : type of problem - classification or regression
+        model_type : type of problem - classification or regression
             For classification related analysis. use 'classification' or 'clf'
             For regression related analysis. use 'regression' or 'reg'
         target : Define the target variable, if you want to see the relationship between given list of varaible with Target variable, default None
@@ -1161,7 +1275,7 @@ def categorical_variable_detail(df, variable, model = None, target=None,  rare_t
    #8. Plot distribution of target variable for each categories
 
     if target:
-        if model == 'regression' or model == 'reg' :
+        if model_type == 'regression' or model_type == 'reg' :
             
             printmd ('**<u>Distribution of Target variable for all categories:</u>**')
             plot_target_with_categories(eda_df, c, target)

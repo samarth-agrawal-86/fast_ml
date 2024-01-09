@@ -4,7 +4,7 @@ import numpy as np
 
 class FeatureEngineering_Numerical:
     
-    def __init__(self, method='10p', custom_buckets=None, adaptive = True, model='clf'):
+    def __init__(self, method='10p', custom_buckets=None, adaptive = True, model_type='clf'):
         '''
         Select various binning techniques for bucketing the numerical variables
 
@@ -27,7 +27,7 @@ class FeatureEngineering_Numerical:
             adaptive : bool. Default True
                 If any numerical variable is skewed in nature then choosing adaptive will try to find the 
                 next change in the percentile value and will not create the similar bins
-            model : str. Default 'clf'
+            model_type : str. Default 'clf'
                 'classification' or 'clf' for classification related analysis 
                 'regression' or 'reg' for regression related analysis
 
@@ -40,7 +40,7 @@ class FeatureEngineering_Numerical:
         self.method = method
         self.custom_buckets = custom_buckets
         self.adaptive = adaptive
-        self.model = model
+        self.model_type = model_type
     
     def fit(self, df, variables):
         
@@ -114,12 +114,12 @@ class FeatureEngineering_Numerical:
         return df
 
 class FeatureEngineering_Categorical:
-    def __init__(self, model=None, method='label', drop_last=False, n_frequent=None):
+    def __init__(self, model_type=None, method='label', drop_last=False, n_frequent=None):
         """
         Parameters:
         -----------
-            model : str. default None. 
-                Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model to be defined as 'classification' or 'clf'
+            model_type : str. default None. 
+                Most of the encoding methods can be used for both classification and regression problems. however only 2 methods require model_type to be defined as 'classification' or 'clf'
             method : str
                 'rare_encoding' or 'rare' : for combining less frequent categories into 'Rare' label first. 
                 'one-hot' or 'onehot' : for one hot encoding
@@ -131,8 +131,8 @@ class FeatureEngineering_Categorical:
                 Target encoding methods
                 'target_ordered' : converts categories into codes but in the descending order of mean target value
                 'target_mean' : converts categories into mean target value
-                'target_prob_ratio' : only for classification models, takes the ratio of target =1 / target =0
-                'target_woe' : only for classification models, calculates the weight of evidence(woe) for each category and replaces the value for that
+                'target_prob_ratio' : only for classification model_types, takes the ratio of target =1 / target =0
+                'target_woe' : only for classification model_types, calculates the weight of evidence(woe) for each category and replaces the value for that
                 
             drop_last : bool. default False
                 if method = 'one-hot' then use this parameter to drop last category 
@@ -144,7 +144,7 @@ class FeatureEngineering_Categorical:
         self.method = method
         self.drop_last = drop_last
         self.n_frequent = n_frequent
-        self.model = model
+        self.model_type = model_type
         self.drop_last = drop_last
         
     def fit(self, df, variables, target=None, rare_tol=5):
@@ -216,7 +216,7 @@ class FeatureEngineering_Categorical:
                 s = df.groupby(var)[target].mean()
                 self.param_dict_[var] = {cat:ix for cat, ix in s.items()}
         
-        if (self.model =='classification' or self.model == 'clf'):
+        if (self.model_type =='classification' or self.model_type == 'clf'):
             if self.method =='target_prob_ratio':
                 for var in variables:
                     try:
@@ -228,7 +228,7 @@ class FeatureEngineering_Categorical:
                     except:
                         print(f'Error in the variable : {var}')
                     
-        if (self.model =='classification' or self.model == 'clf'):
+        if (self.model_type =='classification' or self.model_type == 'clf'):
             if self.method =='target_woe':
                 for var in variables:
                     try:
@@ -277,7 +277,7 @@ class FeatureEngineering_Categorical:
             for var, mapper in self.param_dict_.items():
                 df[var] = df[var].map(mapper)
         
-        if (self.model =='classification' or self.model == 'clf'):
+        if (self.model_type =='classification' or self.model_type == 'clf'):
             if self.method in ('target_prob_ratio', 'target_woe'):
                 for var, mapper in self.param_dict_.items():
                     df[var] = df[var].map(mapper)
@@ -288,16 +288,19 @@ class FeatureEngineering_Categorical:
 
 class FeatureEngineering_DateTime:
 
-    def __init__(self, drop_orig=True):
+    def __init__(self, drop_orig=False):
         """
         This function extracts more features from datetime variable
         ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
                   'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
         
+        day_of_week : The number of the day of the week with Monday=0, Sunday=6
+        quarter : Quarter of the date: Jan-Mar = 1, Apr-Jun = 2, etc.
+
         Parameters:
         -----------
             df : DataFrame
-            drop_orig : bool, default True
+            drop_orig : bool, default False
                 If True then original variable is dropped
             
         Returns:
@@ -307,11 +310,10 @@ class FeatureEngineering_DateTime:
             
         Example:
         --------
-            dt_imputer = FeatureEngineering_DateTime (drop_orig=True)
-            dt_imputer.fit(train, ['saledate'], prefix = 'saledate_')
+            dt_imputer = FeatureEngineering_DateTime (drop_orig=False)
+            dt_imputer.fit(train, ['saledate'], prefix = 'saledate:')
 
             train = dt_imputer.transform(train)
-
 
         """
         self.drop_orig=drop_orig
@@ -335,9 +337,6 @@ class FeatureEngineering_DateTime:
         self.prefix = prefix
         self.param_dict_ = "No Parameter dictionary needed for this. Use transform() method"
 
-
-
-    
     def transform(self, df):
         '''
         Parameters:
@@ -352,16 +351,40 @@ class FeatureEngineering_DateTime:
         '''
         df = df.copy()
 
+        def __day_part__(hour):
+            if hour in [4,5]:
+                return "dawn"
+            elif hour in [6,7]:
+                return "early morning"
+            elif hour in [8,9,10]:
+                return "late morning"
+            elif hour in [11,12,13]:
+                return "noon"
+            elif hour in [14,15,16]:
+                return "afternoon"
+            elif hour in [17, 18,19]:
+                return "evening"
+            elif hour in [20, 21, 22]:
+                return "night"
+            elif hour in [23,24,1,2,3]:
+                return "midnight"
+
         for var in self.datetime_variables:
-
-
             if self.prefix =='default':
-                pfx = str(var)+'_'
+                pfx = str(var)+':'
+            else: 
+                pfx = self.prefix
 
-            features = ['year', 'quarter', 'month', 'week','day','dayofweek','dayofyear',
-                        'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start']
+            features = ['year', 'quarter', 'month','day', 'day_of_week','day_of_year', 'weekofyear',
+                        'is_month_end','is_month_start','is_quarter_end','is_quarter_start','is_year_end', 'is_year_start',
+                       'time', 'hour', 'minute', 'second']
             for f in features:
                 df[pfx+f] = getattr(df[var].dt, f)
+            
+            df[pfx+'is_weekend'] = np.where(df[pfx+'day_of_week'].isin([5,6]), 1,0)
+
+            df[pfx+'day_part'] = df[pfx+'hour'].apply(__day_part__)
+
             
             if self.drop_orig:
                 df.drop(var, axis=1, inplace = True)

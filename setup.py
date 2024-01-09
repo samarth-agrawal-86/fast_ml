@@ -11,12 +11,12 @@ URL = "https://github.com/samarth-agrawal-86/fast_ml"
 
 setup(
 		name = 'fast_ml',
-		version = 3.39,
+		version = 3.68,
 		description = desc,
 		long_description = long_description,
 		long_description_content_type = "text/markdown",	
 		url = URL,
-		packages=find_packages(include=['fast_ml', 'fast_ml.*']),
+		packages=find_packages(include=['fast_ml', 'fast_ml/tools.*', 'fast_ml.tools.*', 'fast_ml.*']),
 		author = 'Samarth Agrawal',
 		author_email = 'samarth.agrawal.86@gmail.com',
 		python_requires='>=3.6',

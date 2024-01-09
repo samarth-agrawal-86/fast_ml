@@ -16,8 +16,9 @@ pip install fast_ml
 4. **Missing Data Imputation**
 5. **Outlier Treatment**
 6. **Feature Engineering**
-7. **Model Evaluation**
-8. **Feature Selection**
+7. **Feature Selection**
+8. **Model Development**
+9. **Model Evaluation**
 
 
 ## Glossary
@@ -54,7 +55,7 @@ from fast_ml import eda
 train = pd.read_csv('train.csv')
 
 # One of the most useful dataframe summary view
-summary_df = eda.df_summary(train)
+summary_df = eda.df_info(train)
 display_all(summary_df)
 ```
 1. **eda.df_info**(*df*)
@@ -254,12 +255,55 @@ test = dt_encoder.transform(test)
 1. **fit**(*df, datetime_variables, prefix = 'default'*)
 2. **transform**(*df*)
 
+## 7. Feature Selection
+```python
+from fast_ml.feature_selection import get_constant_features
 
-## 6. Model Evaluation
+constant_features = get_constant_features(df, threshold=0.99, dropna=False)
+# constant_features is a dataframe
+display_all(constant_features)
+
+# to get list of constant features
+constant_feats = (constant_features['Var'].to_list()
+print(constant_feats)
+```
+1. get_constant_features(df, threshold=0.99, dropna=False)
+2. get_duplicate_features(df)
+3. get_correlated_pairs(df, threshold=0.9)
+4. recursive_feature_elimination(model, X_train, y_train, X_valid, y_valid, X_test, y_test)
+5. variables_clustering (df, variables, method)
+
+
+## 8. Model Development
+```python
+from fast_ml.model_development import train_valid_test_split
+
+X_train, y_train, X_valid, y_valid, X_test, y_test = train_valid_test_split(df, target = target, 
+                                                                            train_size=0.8, valid_size=0.1, test_size=0.1)
+
+# Get the shape of all the datasets
+print(X_train.shape), print(y_train.shape)
+print(X_valid.shape), print(y_valid.shape)
+print(X_test.shape), print(y_test.shape)
+```
+1. train_valid_test_split(df, target, train_size=0.8, valid_size=0.1, test_size=0.1, method='random', sort_by_col = None, random_state=None)
+2. all_classifiers(X_train, y_train, X_valid, y_valid, X_test=None, y_test=None, threshold_by = 'ROC AUC' ,verbose = True)
+
+
+## 9. Model Evaluation
+```python
+from fast_ml.model_evaluation import threshold_evaluation
+
+threshold_df = threshold_evaluation(y_true, y_prob, start=0, end=1, step_size=0.1)
+
+display_all(threshold_df)
+```
 1. model_save (model, model_name)
 2. model_load (model_name)
 3. plot_confidence_interval_for_data (model, X)
 4. plot_confidence_interval_for_variable (model, X, y, variable)
+5. threshold_evaluation(y_true, y_prob, start=0, end=1, step_size=0.1)
+6. metrics_evaluation(y_true, y_pred_prob=None, y_pred=None, threshold=None, df_type='train')
 
 
 ---
